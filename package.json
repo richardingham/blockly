@@ -2,7 +2,7 @@
   "name": "blockly",
   "version": "0.0.0",
   "description": "Google's Blockly is a web-based, graphical programming editor.  Users can drag\r blocks together to build a programs.  All code is free and open source.",
-  "main": "blockly_compressed.js",
+  "main": "blockly.js",
   "directories": {
     "test": "tests"
   },
