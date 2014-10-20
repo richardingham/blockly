@@ -24,46 +24,46 @@
  */
 'use strict';
 
-goog.provide('Blockly.Icon');
+module.exports = (function (Blockly) {
 
 /**
  * Class for an icon.
  * @param {Blockly.Block} block The block associated with this icon.
  * @constructor
  */
-Blockly.Icon = function(block) {
+var Icon = function(block) {
   this.block_ = block;
 };
 
 /**
  * Radius of icons.
  */
-Blockly.Icon.RADIUS = 8;
+Icon.RADIUS = 8;
 
 /**
  * Bubble UI (if visible).
  * @type {Blockly.Bubble}
  * @private
  */
-Blockly.Icon.prototype.bubble_ = null;
+Icon.prototype.bubble_ = null;
 
 /**
  * Absolute X coordinate of icon's center.
  * @private
  */
-Blockly.Icon.prototype.iconX_ = 0;
+Icon.prototype.iconX_ = 0;
 
 /**
  * Absolute Y coordinate of icon's centre.
  * @private
  */
-Blockly.Icon.prototype.iconY_ = 0;
+Icon.prototype.iconY_ = 0;
 
 /**
  * Create the icon on the block.
  * @private
  */
-Blockly.Icon.prototype.createIcon_ = function() {
+Icon.prototype.createIcon_ = function() {
   /* Here's the markup that will be generated:
   <g class="blocklyIconGroup"></g>
   */
@@ -76,9 +76,10 @@ Blockly.Icon.prototype.createIcon_ = function() {
 /**
  * Dispose of this icon.
  */
-Blockly.Icon.prototype.dispose = function() {
+Icon.prototype.dispose = function() {
   // Dispose of and unlink the icon.
-  goog.dom.removeNode(this.iconGroup_);
+  var node = this.iconGroup_;
+  if (node && node.parentNode) node.parentNode.removeChild(node);
   this.iconGroup_ = null;
   // Dispose of and unlink the bubble.
   this.setVisible(false);
@@ -88,7 +89,7 @@ Blockly.Icon.prototype.dispose = function() {
 /**
  * Add or remove the UI indicating if this icon may be clicked or not.
  */
-Blockly.Icon.prototype.updateEditable = function() {
+Icon.prototype.updateEditable = function() {
   if (!this.block_.isInFlyout) {
     Blockly.addClass_(/** @type {!Element} */ (this.iconGroup_),
                       'blocklyIconGroup');
@@ -102,7 +103,7 @@ Blockly.Icon.prototype.updateEditable = function() {
  * Is the associated bubble visible?
  * @return {boolean} True if the bubble is visible.
  */
-Blockly.Icon.prototype.isVisible = function() {
+Icon.prototype.isVisible = function() {
   return !!this.bubble_;
 };
 
@@ -111,7 +112,7 @@ Blockly.Icon.prototype.isVisible = function() {
  * @param {!Event} e Mouse click event.
  * @private
  */
-Blockly.Icon.prototype.iconClick_ = function(e) {
+Icon.prototype.iconClick_ = function(e) {
   if (!this.block_.isInFlyout) {
     this.setVisible(!this.isVisible());
   }
@@ -120,7 +121,7 @@ Blockly.Icon.prototype.iconClick_ = function(e) {
 /**
  * Change the colour of the associated bubble to match its block.
  */
-Blockly.Icon.prototype.updateColour = function() {
+Icon.prototype.updateColour = function() {
   if (this.isVisible()) {
     var hexColour = Blockly.makeColour(this.block_.getColour());
     this.bubble_.setColour(hexColour);
@@ -132,7 +133,7 @@ Blockly.Icon.prototype.updateColour = function() {
  * @param {number} cursorX Horizontal offset at which to position the icon.
  * @return {number} Horizontal offset for next item to draw.
  */
-Blockly.Icon.prototype.renderIcon = function(cursorX) {
+Icon.prototype.renderIcon = function(cursorX) {
   if (this.block_.isCollapsed()) {
     this.iconGroup_.setAttribute('display', 'none');
     return cursorX;
@@ -140,7 +141,7 @@ Blockly.Icon.prototype.renderIcon = function(cursorX) {
   this.iconGroup_.setAttribute('display', 'block');
 
   var TOP_MARGIN = 5;
-  var diameter = 2 * Blockly.Icon.RADIUS;
+  var diameter = 2 * Icon.RADIUS;
   if (Blockly.RTL) {
     cursorX -= diameter;
   }
@@ -160,7 +161,7 @@ Blockly.Icon.prototype.renderIcon = function(cursorX) {
  * @param {number} x Absolute horizontal location.
  * @param {number} y Absolute vertical location.
  */
-Blockly.Icon.prototype.setIconLocation = function(x, y) {
+Icon.prototype.setIconLocation = function(x, y) {
   this.iconX_ = x;
   this.iconY_ = y;
   if (this.isVisible()) {
@@ -172,12 +173,12 @@ Blockly.Icon.prototype.setIconLocation = function(x, y) {
  * Notification that the icon has moved, but we don't really know where.
  * Recompute the icon's location from scratch.
  */
-Blockly.Icon.prototype.computeIconLocation = function() {
+Icon.prototype.computeIconLocation = function() {
   // Find coordinates for the centre of the icon and update the arrow.
   var blockXY = this.block_.getRelativeToSurfaceXY();
   var iconXY = Blockly.getRelativeXY_(this.iconGroup_);
-  var newX = blockXY.x + iconXY.x + Blockly.Icon.RADIUS;
-  var newY = blockXY.y + iconXY.y + Blockly.Icon.RADIUS;
+  var newX = blockXY.x + iconXY.x + Icon.RADIUS;
+  var newY = blockXY.y + iconXY.y + Icon.RADIUS;
   if (newX !== this.iconX_ || newY !== this.iconY_) {
     this.setIconLocation(newX, newY);
   }
@@ -187,6 +188,10 @@ Blockly.Icon.prototype.computeIconLocation = function() {
  * Returns the center of the block's icon relative to the surface.
  * @return {!Object} Object with x and y properties.
  */
-Blockly.Icon.prototype.getIconLocation = function() {
+Icon.prototype.getIconLocation = function() {
   return {x: this.iconX_, y: this.iconY_};
 };
+
+return Icon;
+
+});

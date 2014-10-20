@@ -26,8 +26,7 @@
  */
 'use strict';
 
-goog.provide('Blockly.utils');
-
+module.exports = (function (Blockly) {
 
 /**
  * Add a CSS class to a element.
@@ -421,3 +420,42 @@ Blockly.commonWordSuffix = function(array, opt_shortest) {
 Blockly.isNumber = function(str) {
   return !!str.match(/^\s*-?\d+(\.\d+)?\s*$/);
 };
+
+if(typeof String.prototype.trim !== 'function') {
+  String.prototype.trim = function() {
+    return str.replace(/^[\s\xa0]+|[\s\xa0]+$/g, '');
+  }
+}
+
+Blockly.string = {};
+
+Blockly.string.caseInsensitiveCompare = function(str1, str2) {
+  var test1 = String(str1).toLowerCase();
+  var test2 = String(str2).toLowerCase();
+
+  if (test1 < test2) {
+    return -1;
+  } else if (test1 === test2) {
+    return 0;
+  } else {
+    return 1;
+  }
+};
+
+Blockly.string.truncate = function(str, chars, opt_protectEscapedCharacters) {
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.unescapeEntities(str);
+  }
+
+  if (str.length > chars) {
+    str = str.substring(0, chars - 3) + '...';
+  }
+
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.htmlEscape(str);
+  }
+
+  return str;
+};
+
+});

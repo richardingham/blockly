@@ -24,13 +24,12 @@
  */
 'use strict';
 
-goog.provide('Blockly.FieldTextInput');
+// goog.require('Blockly.Field');
 
-goog.require('Blockly.Field');
-goog.require('Blockly.Msg');
-goog.require('goog.asserts');
-goog.require('goog.userAgent');
+var util = require('util');
+var assert = require('assert');
 
+module.exports = (function (Blockly) {
 
 /**
  * Class for an editable text field.
@@ -42,33 +41,33 @@ goog.require('goog.userAgent');
  * @extends {Blockly.Field}
  * @constructor
  */
-Blockly.FieldTextInput = function(text, opt_changeHandler) {
-  Blockly.FieldTextInput.superClass_.constructor.call(this, text);
+var FieldTextInput = function(text, opt_changeHandler) {
+  FieldTextInput.super_.call(this, text);
 
   this.changeHandler_ = opt_changeHandler;
 };
-goog.inherits(Blockly.FieldTextInput, Blockly.Field);
+util.inherits(FieldTextInput, Blockly.Field);
 
 /**
  * Clone this FieldTextInput.
- * @return {!Blockly.FieldTextInput} The result of calling the constructor again
+ * @return {!FieldTextInput} The result of calling the constructor again
  *   with the current values of the arguments used during construction.
  */
-Blockly.FieldTextInput.prototype.clone = function() {
-  return new Blockly.FieldTextInput(this.getText(), this.changeHandler_);
+FieldTextInput.prototype.clone = function() {
+  return new FieldTextInput(this.getText(), this.changeHandler_);
 };
 
 /**
  * Mouse cursor style when over the hotspot that initiates the editor.
  */
-Blockly.FieldTextInput.prototype.CURSOR = 'text';
+FieldTextInput.prototype.CURSOR = 'text';
 
 /**
  * Close the input widget if this input is being deleted.
  */
-Blockly.FieldTextInput.prototype.dispose = function() {
+FieldTextInput.prototype.dispose = function() {
   Blockly.WidgetDiv.hideIfOwner(this);
-  Blockly.FieldTextInput.superClass_.dispose.call(this);
+  FieldTextInput.super_.prototype.dispose.call(this);
 };
 
 /**
@@ -76,7 +75,7 @@ Blockly.FieldTextInput.prototype.dispose = function() {
  * @param {?string} text New text.
  * @override
  */
-Blockly.FieldTextInput.prototype.setText = function(text) {
+FieldTextInput.prototype.setText = function(text) {
   if (text === null) {
     // No change if null.
     return;
@@ -98,9 +97,10 @@ Blockly.FieldTextInput.prototype.setText = function(text) {
  *     focus.  Defaults to false.
  * @private
  */
-Blockly.FieldTextInput.prototype.showEditor_ = function(opt_quietInput) {
+FieldTextInput.prototype.showEditor_ = function(opt_quietInput) {
   var quietInput = opt_quietInput || false;
-  if (!quietInput && (goog.userAgent.MOBILE || goog.userAgent.ANDROID ||
+  // TODO - maybe http://stackoverflow.com/questions/11381673/javascript-solution-to-detect-mobile-browser
+  /*if (!quietInput && (goog.userAgent.MOBILE || goog.userAgent.ANDROID ||
                       goog.userAgent.IPAD)) {
     // Mobile browsers have issues with in-line textareas (focus & keyboards).
     var newValue = window.prompt(Blockly.Msg.CHANGE_VALUE_TITLE, this.text_);
@@ -114,13 +114,14 @@ Blockly.FieldTextInput.prototype.showEditor_ = function(opt_quietInput) {
       this.setText(newValue);
     }
     return;
-  }
+  }*/
 
   Blockly.WidgetDiv.show(this, this.widgetDispose_());
   var div = Blockly.WidgetDiv.DIV;
   // Create the input.
-  var htmlInput = goog.dom.createDom('input', 'blocklyHtmlInput');
-  Blockly.FieldTextInput.htmlInput_ = htmlInput;
+  var htmlInput = document.createElement('input');
+  htmlInput.setAttribute('class', 'blocklyHtmlInput');
+  FieldTextInput.htmlInput_ = htmlInput;
   div.appendChild(htmlInput);
 
   htmlInput.value = htmlInput.defaultValue = this.text_;
@@ -149,8 +150,8 @@ Blockly.FieldTextInput.prototype.showEditor_ = function(opt_quietInput) {
  * @param {!Event} e Keyboard event.
  * @private
  */
-Blockly.FieldTextInput.prototype.onHtmlInputChange_ = function(e) {
-  var htmlInput = Blockly.FieldTextInput.htmlInput_;
+FieldTextInput.prototype.onHtmlInputChange_ = function(e) {
+  var htmlInput = FieldTextInput.htmlInput_;
   if (e.keyCode == 13) {
     // Enter
     Blockly.WidgetDiv.hide();
@@ -165,11 +166,12 @@ Blockly.FieldTextInput.prototype.onHtmlInputChange_ = function(e) {
       htmlInput.oldValue_ = text;
       this.setText(text);
       this.validate_();
-    } else if (goog.userAgent.WEBKIT) {
+    // TODO
+	} // else if (goog.userAgent.WEBKIT) {
       // Cursor key.  Render the source block to show the caret moving.
       // Chrome only (version 26, OS X).
-      this.sourceBlock_.render();
-    }
+     // this.sourceBlock_.render();
+    //}
   }
 };
 
@@ -178,10 +180,10 @@ Blockly.FieldTextInput.prototype.onHtmlInputChange_ = function(e) {
  * Style the editor accordingly.
  * @private
  */
-Blockly.FieldTextInput.prototype.validate_ = function() {
+FieldTextInput.prototype.validate_ = function() {
   var valid = true;
-  goog.asserts.assertObject(Blockly.FieldTextInput.htmlInput_);
-  var htmlInput = /** @type {!Element} */ (Blockly.FieldTextInput.htmlInput_);
+  assert(util.isObject(FieldTextInput.htmlInput_));
+  var htmlInput = FieldTextInput.htmlInput_;
   if (this.changeHandler_) {
     valid = this.changeHandler_(htmlInput.value);
   }
@@ -196,11 +198,11 @@ Blockly.FieldTextInput.prototype.validate_ = function() {
  * Resize the editor and the underlying block to fit the text.
  * @private
  */
-Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
+FieldTextInput.prototype.resizeEditor_ = function() {
   var div = Blockly.WidgetDiv.DIV;
   var bBox = this.fieldGroup_.getBBox();
   div.style.width = bBox.width + 'px';
-  var xy = Blockly.getAbsoluteXY_(/** @type {!Element} */ (this.borderRect_));
+  var xy = Blockly.getAbsoluteXY_(this.borderRect_);
   // In RTL mode block fields and LTR input fields the left edge moves,
   // whereas the right edge is fixed.  Reposition the editor.
   if (Blockly.RTL) {
@@ -210,9 +212,10 @@ Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
   }
   // Shift by a few pixels to line up exactly.
   xy.y += 1;
-  if (goog.userAgent.WEBKIT) {
-    xy.y -= 3;
-  }
+  // TODO:
+  //if (goog.userAgent.WEBKIT) {
+  //  xy.y -= 3;
+ // }
   div.style.left = xy.x + 'px';
   div.style.top = xy.y + 'px';
 };
@@ -223,10 +226,10 @@ Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
  * @return {!Function} Closure to call on destruction of the WidgetDiv.
  * @private
  */
-Blockly.FieldTextInput.prototype.widgetDispose_ = function() {
+FieldTextInput.prototype.widgetDispose_ = function() {
   var thisField = this;
   return function() {
-    var htmlInput = Blockly.FieldTextInput.htmlInput_;
+    var htmlInput = FieldTextInput.htmlInput_;
     // Save the edit (if it validates).
     var text = htmlInput.value;
     if (thisField.changeHandler_) {
@@ -241,7 +244,7 @@ Blockly.FieldTextInput.prototype.widgetDispose_ = function() {
     Blockly.unbindEvent_(htmlInput.onKeyUpWrapper_);
     Blockly.unbindEvent_(htmlInput.onKeyPressWrapper_);
     Blockly.unbindEvent_(htmlInput.onWorkspaceChangeWrapper_);
-    Blockly.FieldTextInput.htmlInput_ = null;
+    FieldTextInput.htmlInput_ = null;
     // Delete the width property.
     Blockly.WidgetDiv.DIV.style.width = 'auto';
   };
@@ -252,7 +255,7 @@ Blockly.FieldTextInput.prototype.widgetDispose_ = function() {
  * @param {string} text The user's text.
  * @return {?string} A string representing a valid number, or null if invalid.
  */
-Blockly.FieldTextInput.numberValidator = function(text) {
+FieldTextInput.numberValidator = function(text) {
   // TODO: Handle cases like 'ten', '1.203,14', etc.
   // 'O' is sometimes mistaken for '0' by inexperienced users.
   text = text.replace(/O/ig, '0');
@@ -267,10 +270,15 @@ Blockly.FieldTextInput.numberValidator = function(text) {
  * @param {string} text The user's text.
  * @return {?string} A string representing a valid int, or null if invalid.
  */
-Blockly.FieldTextInput.nonnegativeIntegerValidator = function(text) {
-  var n = Blockly.FieldTextInput.numberValidator(text);
+FieldTextInput.nonnegativeIntegerValidator = function(text) {
+  var n = FieldTextInput.numberValidator(text);
   if (n) {
     n = String(Math.max(0, Math.floor(n)));
   }
   return n;
 };
+
+return FieldTextInput;
+
+});
+

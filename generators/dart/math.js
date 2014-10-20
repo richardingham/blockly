@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.math');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart.addReservedWords('Math');
 
 Blockly.Dart['math_number'] = function(block) {

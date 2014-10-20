@@ -24,10 +24,11 @@
  */
 'use strict';
 
-goog.provide('Blockly.FieldCheckbox');
+// goog.require('Blockly.Field');
 
-goog.require('Blockly.Field');
+var util = require('util');
 
+module.exports = (function (Blockly) {
 
 /**
  * Class for a checkbox field.
@@ -39,8 +40,8 @@ goog.require('Blockly.Field');
  * @extends {Blockly.Field}
  * @constructor
  */
-Blockly.FieldCheckbox = function(state, opt_changeHandler) {
-  Blockly.FieldCheckbox.superClass_.constructor.call(this, '');
+var FieldCheckbox = function(state, opt_changeHandler) {
+  FieldCheckbox.super_.call(this, '');
 
   this.changeHandler_ = opt_changeHandler;
   // The checkbox doesn't use the inherited text element.
@@ -52,27 +53,27 @@ Blockly.FieldCheckbox = function(state, opt_changeHandler) {
   // Set the initial state.
   this.setValue(state);
 };
-goog.inherits(Blockly.FieldCheckbox, Blockly.Field);
+util.inherits(FieldCheckbox, Blockly.Field);
 
 /**
  * Clone this FieldCheckbox.
- * @return {!Blockly.FieldCheckbox} The result of calling the constructor again
+ * @return {!FieldCheckbox} The result of calling the constructor again
  *   with the current values of the arguments used during construction.
  */
-Blockly.FieldCheckbox.prototype.clone = function() {
-  return new Blockly.FieldCheckbox(this.getValue(), this.changeHandler_);
+FieldCheckbox.prototype.clone = function() {
+  return new FieldCheckbox(this.getValue(), this.changeHandler_);
 };
 
 /**
  * Mouse cursor style when over the hotspot that initiates editability.
  */
-Blockly.FieldCheckbox.prototype.CURSOR = 'default';
+FieldCheckbox.prototype.CURSOR = 'default';
 
 /**
  * Return 'TRUE' if the checkbox is checked, 'FALSE' otherwise.
  * @return {string} Current state.
  */
-Blockly.FieldCheckbox.prototype.getValue = function() {
+FieldCheckbox.prototype.getValue = function() {
   return String(this.state_).toUpperCase();
 };
 
@@ -80,7 +81,7 @@ Blockly.FieldCheckbox.prototype.getValue = function() {
  * Set the checkbox to be checked if strBool is 'TRUE', unchecks otherwise.
  * @param {string} strBool New state.
  */
-Blockly.FieldCheckbox.prototype.setValue = function(strBool) {
+FieldCheckbox.prototype.setValue = function(strBool) {
   var newState = (strBool == 'TRUE');
   if (this.state_ !== newState) {
     this.state_ = newState;
@@ -95,7 +96,7 @@ Blockly.FieldCheckbox.prototype.setValue = function(strBool) {
  * Toggle the state of the checkbox.
  * @private
  */
-Blockly.FieldCheckbox.prototype.showEditor_ = function() {
+FieldCheckbox.prototype.showEditor_ = function() {
   var newState = !this.state_;
   if (this.changeHandler_) {
     // Call any change handler, and allow it to override.
@@ -108,3 +109,8 @@ Blockly.FieldCheckbox.prototype.showEditor_ = function() {
     this.setValue(String(newState).toUpperCase());
   }
 };
+
+return FieldCheckbox;
+
+});
+

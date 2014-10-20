@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript.loops');
-
-goog.require('Blockly.JavaScript');
-
-
 Blockly.JavaScript['controls_repeat'] = function(block) {
   // Repeat n times (internal number).
   var repeats = Number(block.getFieldValue('TIMES'));

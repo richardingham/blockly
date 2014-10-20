@@ -25,17 +25,16 @@
  */
 'use strict';
 
-goog.provide('Blockly.Generator');
+var util = require('util');
 
-goog.require('Blockly.Block');
-
+module.exports = (function (Blockly) {
 
 /**
  * Class for a code generator that translates the blocks into a language.
  * @param {string} name Language name of this generator.
  * @constructor
  */
-Blockly.Generator = function(name) {
+var Generator = function(name) {
   this.name_ = name;
   this.RESERVED_WORDS_ = '';
   this.FUNCTION_NAME_PLACEHOLDER_REGEXP_ =
@@ -45,7 +44,7 @@ Blockly.Generator = function(name) {
 /**
  * Category to separate generated function names from variables and procedures.
  */
-Blockly.Generator.NAME_TYPE = 'generated_function';
+Generator.NAME_TYPE = 'generated_function';
 
 /**
  * Arbitrary code to inject into locations that risk causing infinite loops.
@@ -53,7 +52,7 @@ Blockly.Generator.NAME_TYPE = 'generated_function';
  * E.g. '  checkTimeout(%1);\n'
  * @type ?string
  */
-Blockly.Generator.prototype.INFINITE_LOOP_TRAP = null;
+Generator.prototype.INFINITE_LOOP_TRAP = null;
 
 /**
  * Arbitrary code to inject before every statement.
@@ -61,19 +60,19 @@ Blockly.Generator.prototype.INFINITE_LOOP_TRAP = null;
  * E.g. 'highlight(%1);\n'
  * @type ?string
  */
-Blockly.Generator.prototype.STATEMENT_PREFIX = null;
+Generator.prototype.STATEMENT_PREFIX = null;
 
 /**
  * Generate code for all blocks in the workspace to the specified language.
  * @return {string} Generated code.
  */
-Blockly.Generator.prototype.workspaceToCode = function() {
+Generator.prototype.workspaceToCode = function() {
   var code = [];
   this.init();
   var blocks = Blockly.mainWorkspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
     var line = this.blockToCode(block);
-    if (goog.isArray(line)) {
+    if (util.isArray(line)) {
       // Value blocks return tuples of code and operator order.
       // Top-level blocks don't care about operator order.
       line = line[0];
@@ -105,7 +104,7 @@ Blockly.Generator.prototype.workspaceToCode = function() {
  * @param {string} prefix The common prefix.
  * @return {string} The prefixed lines of code.
  */
-Blockly.Generator.prototype.prefixLines = function(text, prefix) {
+Generator.prototype.prefixLines = function(text, prefix) {
   return prefix + text.replace(/\n(.)/g, '\n' + prefix + '$1');
 };
 
@@ -114,7 +113,7 @@ Blockly.Generator.prototype.prefixLines = function(text, prefix) {
  * @param {!Blockly.Block} block The block from which to start spidering.
  * @return {string} Concatenated list of comments.
  */
-Blockly.Generator.prototype.allNestedComments = function(block) {
+Generator.prototype.allNestedComments = function(block) {
   var comments = [];
   var blocks = block.getDescendants();
   for (var x = 0; x < blocks.length; x++) {
@@ -137,7 +136,7 @@ Blockly.Generator.prototype.allNestedComments = function(block) {
  *     For value blocks, an array containing the generated code and an
  *     operator order value.  Returns '' if block is null.
  */
-Blockly.Generator.prototype.blockToCode = function(block) {
+Generator.prototype.blockToCode = function(block) {
   if (!block) {
     return '';
   }
@@ -156,10 +155,10 @@ Blockly.Generator.prototype.blockToCode = function(block) {
   // The current prefered method of accessing the block is through the second
   // argument to func.call, which becomes the first parameter to the generator.
   var code = func.call(block, block);
-  if (goog.isArray(code)) {
+  if (util.isArray(code)) {
     // Value blocks return tuples of code and operator order.
     return [this.scrub_(block, code[0]), code[1]];
-  } else if (goog.isString(code)) {
+  } else if (util.isString(code)) {
     if (this.STATEMENT_PREFIX) {
       code = this.STATEMENT_PREFIX.replace(/%1/g, '\'' + block.id + '\'') +
           code;
@@ -182,7 +181,7 @@ Blockly.Generator.prototype.blockToCode = function(block) {
  * @return {string} Generated code or '' if no blocks are connected or the
  *     specified input does not exist.
  */
-Blockly.Generator.prototype.valueToCode = function(block, name, order) {
+Generator.prototype.valueToCode = function(block, name, order) {
   if (isNaN(order)) {
     throw 'Expecting valid order from block "' + block.type + '".';
   }
@@ -195,7 +194,7 @@ Blockly.Generator.prototype.valueToCode = function(block, name, order) {
     // Disabled block.
     return '';
   }
-  if (!goog.isArray(tuple)) {
+  if (!util.isArray(tuple)) {
     // Value blocks must return code and order of operations info.
     // Statement blocks must only return code.
     throw 'Expecting tuple from value block "' + targetBlock.type + '".';
@@ -228,10 +227,10 @@ Blockly.Generator.prototype.valueToCode = function(block, name, order) {
  * @param {string} name The name of the input.
  * @return {string} Generated code or '' if no blocks are connected.
  */
-Blockly.Generator.prototype.statementToCode = function(block, name) {
+Generator.prototype.statementToCode = function(block, name) {
   var targetBlock = block.getInputTargetBlock(name);
   var code = this.blockToCode(targetBlock);
-  if (!goog.isString(code)) {
+  if (!util.isString(code)) {
     // Value blocks must return code and order of operations info.
     // Statement blocks must only return code.
     throw 'Expecting code from statement block "' + targetBlock.type + '".';
@@ -249,7 +248,7 @@ Blockly.Generator.prototype.statementToCode = function(block, name) {
  * @param {string} id ID of enclosing block.
  * @return {string} Loop contents, with infinite loop trap added.
  */
-Blockly.Generator.prototype.addLoopTrap = function(branch, id) {
+Generator.prototype.addLoopTrap = function(branch, id) {
   if (this.INFINITE_LOOP_TRAP) {
     branch = this.INFINITE_LOOP_TRAP.replace(/%1/g, '\'' + id + '\'') + branch;
   }
@@ -264,25 +263,25 @@ Blockly.Generator.prototype.addLoopTrap = function(branch, id) {
  * The method of indenting.  Defaults to two spaces, but language generators
  * may override this to increase indent or change to tabs.
  */
-Blockly.Generator.prototype.INDENT = '  ';
+Generator.prototype.INDENT = '  ';
 
 /**
  * Add one or more words to the list of reserved words for this language.
  * @param {string} words Comma-separated list of words to add to the list.
  *     No spaces.  Duplicates are ok.
  */
-Blockly.Generator.prototype.addReservedWords = function(words) {
+Generator.prototype.addReservedWords = function(words) {
   this.RESERVED_WORDS_ += words + ',';
 };
 
 /**
  * This is used as a placeholder in functions defined using
- * Blockly.Generator.provideFunction_.  It must not be legal code that could
+ * Generator.provideFunction_.  It must not be legal code that could
  * legitimately appear in a function definition (or comment), and it must
  * not confuse the regular expression parser.
  * @private
  */
-Blockly.Generator.prototype.FUNCTION_NAME_PLACEHOLDER_ = '{leCUI8hutHZI4480Dc}';
+Generator.prototype.FUNCTION_NAME_PLACEHOLDER_ = '{leCUI8hutHZI4480Dc}';
 
 /**
  * Define a function to be included in the generated code.
@@ -293,7 +292,7 @@ Blockly.Generator.prototype.FUNCTION_NAME_PLACEHOLDER_ = '{leCUI8hutHZI4480Dc}';
  * It is up to the caller to make sure the same desiredName is not
  * used for different code values.
  *
- * The code gets output when Blockly.Generator.finish() is called.
+ * The code gets output when Generator.finish() is called.
  *
  * @param {string} desiredName The desired name of the function (e.g., isPrime).
  * @param {!Array.<string>} code A list of Python statements.
@@ -301,7 +300,7 @@ Blockly.Generator.prototype.FUNCTION_NAME_PLACEHOLDER_ = '{leCUI8hutHZI4480Dc}';
  *     from desiredName if the former has already been taken by the user.
  * @private
  */
-Blockly.Generator.prototype.provideFunction_ = function(desiredName, code) {
+Generator.prototype.provideFunction_ = function(desiredName, code) {
   if (!this.definitions_[desiredName]) {
     var functionName =
         this.variableDB_.getDistinctName(desiredName, this.NAME_TYPE);
@@ -311,3 +310,7 @@ Blockly.Generator.prototype.provideFunction_ = function(desiredName, code) {
   }
   return this.functionNames_[desiredName];
 };
+
+return Generator;
+
+});

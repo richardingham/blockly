@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript.procedures');
-
-goog.require('Blockly.JavaScript');
-
-
 Blockly.JavaScript['procedures_defreturn'] = function(block) {
   // Define a procedure with a return value.
   var funcName = Blockly.JavaScript.variableDB_.getName(

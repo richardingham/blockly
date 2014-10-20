@@ -24,38 +24,13 @@
  */
 'use strict';
 
+var util = require('util');
+var tinycolor = require('tinycolor2');
+
+(function () {
+
 // Top level object for Blockly.
-goog.provide('Blockly');
-
-// Blockly core dependencies.
-goog.require('Blockly.Block');
-goog.require('Blockly.Connection');
-goog.require('Blockly.FieldAngle');
-goog.require('Blockly.FieldCheckbox');
-goog.require('Blockly.FieldColour');
-goog.require('Blockly.FieldDropdown');
-goog.require('Blockly.FieldImage');
-goog.require('Blockly.FieldTextInput');
-goog.require('Blockly.FieldVariable');
-goog.require('Blockly.Generator');
-goog.require('Blockly.Msg');
-goog.require('Blockly.Procedures');
-goog.require('Blockly.Realtime');
-goog.require('Blockly.Toolbox');
-goog.require('Blockly.WidgetDiv');
-goog.require('Blockly.Workspace');
-goog.require('Blockly.inject');
-goog.require('Blockly.utils');
-
-// Closure dependencies.
-goog.require('goog.color');
-goog.require('goog.dom');
-goog.require('goog.events');
-goog.require('goog.string');
-goog.require('goog.ui.ColorPicker');
-goog.require('goog.ui.tree.TreeControl');
-goog.require('goog.userAgent');
-
+var Blockly = {};
 
 /**
  * Path to Blockly's directory.  Can be relative, absolute, or remote.
@@ -100,8 +75,11 @@ Blockly.SPRITE = {
  * @return {string} RGB code, e.g. '#5ba65b'.
  */
 Blockly.makeColour = function(hue) {
-  return goog.color.hsvToHex(hue, Blockly.HSV_SATURATION,
-      Blockly.HSV_VALUE * 256);
+  return new tinycolor({ 
+    h: hue, 
+    s: Blockly.HSV_SATURATION,
+    v: Blockly.HSV_VALUE
+  });
 };
 
 /**
@@ -589,9 +567,10 @@ Blockly.preloadAudio_ = function() {
     sound.pause();
     // iOS can only process one sound at a time.  Trying to load more than one
     // corrupts the earlier ones.  Just load one and leave the others uncached.
-    if (goog.userAgent.IPAD || goog.userAgent.IPHONE) {
-      break;
-    }
+    // TODO
+	//if (goog.userAgent.IPAD || goog.userAgent.IPHONE) {
+    //  break;
+    //}
   }
 };
 
@@ -604,19 +583,20 @@ Blockly.preloadAudio_ = function() {
 Blockly.playAudio = function(name, opt_volume) {
   var sound = Blockly.SOUNDS_[name];
   if (sound) {
-    var mySound;
-    var ie9 = goog.userAgent.DOCUMENT_MODE &&
-              goog.userAgent.DOCUMENT_MODE === 9;
-    if (ie9 || goog.userAgent.IPAD || goog.userAgent.ANDROID) {
+    //var mySound;
+    //var ie9 = goog.userAgent.DOCUMENT_MODE &&
+    //          goog.userAgent.DOCUMENT_MODE === 9;
+    //if (ie9 || goog.userAgent.IPAD || goog.userAgent.ANDROID) {
       // Creating a new audio node causes lag in IE9, Android and iPad. Android
       // and IE9 refetch the file from the server, iPad uses a singleton audio
       // node which must be deleted and recreated for each new audio tag.
-      mySound = sound;
-    } else {
-      mySound = sound.cloneNode();
-    }
-    mySound.volume = (opt_volume === undefined ? 1 : opt_volume);
-    mySound.play();
+      //mySound = sound;
+    //} else {
+    //  mySound = sound.cloneNode();
+    //}
+    sound.currentTime = 0; // Reset sound.
+    sound.volume = (opt_volume === undefined ? 1 : opt_volume);
+    sound.play();
   }
 };
 
@@ -715,11 +695,11 @@ Blockly.setMainWorkspaceMetrics_ = function(xyRatio) {
     throw 'Attempt to set main workspace scroll without scrollbars.';
   }
   var metrics = Blockly.getMainWorkspaceMetrics_();
-  if (goog.isNumber(xyRatio.x)) {
+  if (util.isNumber(xyRatio.x)) {
     Blockly.mainWorkspace.scrollX = -metrics.contentWidth * xyRatio.x -
         metrics.contentLeft;
   }
-  if (goog.isNumber(xyRatio.y)) {
+  if (util.isNumber(xyRatio.y)) {
     Blockly.mainWorkspace.scrollY = -metrics.contentHeight * xyRatio.y -
         metrics.contentTop;
   }
@@ -740,11 +720,11 @@ Blockly.setMainWorkspaceMetrics_ = function(xyRatio) {
  * @param {function()} cmdThunk A function representing the command execution.
  */
 Blockly.doCommand = function(cmdThunk) {
-  if (Blockly.Realtime.isEnabled) {
-    Blockly.Realtime.doCommand(cmdThunk);
-  } else {
+  //if (Blockly.Realtime.isEnabled) {
+  //  Blockly.Realtime.doCommand(cmdThunk);
+  //} else {
     cmdThunk();
-  }
+  //}
 };
 
 /**
@@ -774,6 +754,55 @@ Blockly.getMainWorkspace = function() {
   return Blockly.mainWorkspace;
 };
 
+
+
+Blockly.Msg = {};
+
+// Blocks
+Blockly.Block = require('./block')(Blockly);
+Blockly.BlockSvg = require('./block_svg')(Blockly);
+Blockly.Blocks = require('./blocks')(Blockly);
+
+// Fields
+Blockly.Field = require('./field')(Blockly);
+Blockly.FieldCheckbox = require('./field_checkbox')(Blockly);
+// Blockly.FieldColour = require('./field_colour')(Blockly);
+Blockly.FieldDropdown = require('./field_dropdown')(Blockly);
+Blockly.FieldImage = require('./field_image')(Blockly);
+Blockly.FieldLabel = require('./field_label')(Blockly);
+Blockly.FieldTextInput = require('./field_textinput')(Blockly);
+Blockly.FieldAngle = require('./field_angle')(Blockly);
+
+Blockly.Bubble = require('./bubble')(Blockly);
+Blockly.Icon = require('./icon')(Blockly);
+Blockly.Comment = require('./comment')(Blockly);
+Blockly.Warning = require('./warning')(Blockly);
+
+Blockly.ContextMenu = require('./contextmenu')(Blockly);
+Blockly.Flyout = require('./flyout')(Blockly);
+Blockly.Generator = require('./generator')(Blockly);
+Blockly.Input = require('./input')(Blockly);
+Blockly.Mutator = require('./mutator')(Blockly);
+Blockly.Names = require('./names')(Blockly);
+Blockly.Procedures = require('./procedures')(Blockly);
+Blockly.Toolbox = require('./toolbox')(Blockly);
+Blockly.Tooltip = require('./tooltip')(Blockly);
+Blockly.Trashcan = require('./trashcan')(Blockly);
+Blockly.Variables = require('./variables')(Blockly);
+Blockly.WidgetDiv = require('./widgetdiv')(Blockly);
+Blockly.Workspace = require('./workspace')(Blockly);
+Blockly.Xml = require('./xml')(Blockly);
+require('./connection')(Blockly);
+require('./inject')(Blockly);
+require('./scrollbar')(Blockly);
+require('./utils')(Blockly);
+
+window.Blockly = Blockly;
+module.exports = Blockly;
+
+})();
+
+/*
 // Export symbols that would otherwise be renamed by Closure compiler.
 if (!window['Blockly']) {
   window['Blockly'] = {};
@@ -781,3 +810,4 @@ if (!window['Blockly']) {
 window['Blockly']['getMainWorkspace'] = Blockly.getMainWorkspace;
 window['Blockly']['addChangeListener'] = Blockly.addChangeListener;
 window['Blockly']['removeChangeListener'] = Blockly.removeChangeListener;
+*/

@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript.variables');
-
-goog.require('Blockly.JavaScript');
-
-
 Blockly.JavaScript['variables_get'] = function(block) {
   // Variable getter.
   var code = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'),

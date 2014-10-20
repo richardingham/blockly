@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.variables');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart['variables_get'] = function(block) {
   // Variable getter.
   var code = Blockly.Dart.variableDB_.getName(block.getFieldValue('VAR'),

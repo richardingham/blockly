@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.procedures');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart['procedures_defreturn'] = function(block) {
   // Define a procedure with a return value.
   var funcName = Blockly.Dart.variableDB_.getName(block.getFieldValue('NAME'),

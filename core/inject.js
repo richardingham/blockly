@@ -24,11 +24,7 @@
  */
 'use strict';
 
-goog.provide('Blockly.inject');
-
-goog.require('Blockly.Css');
-goog.require('goog.dom');
-
+module.exports = (function (Blockly) {
 
 /**
  * Initialize the SVG document with various handlers.
@@ -36,8 +32,30 @@ goog.require('goog.dom');
  * @param {Object} opt_options Optional dictionary of options.
  */
 Blockly.inject = function(container, opt_options) {
+  var contains = function(parent, descendant) {
+    // We use browser specific methods for this if available since it is faster
+    // that way.
+  
+    // IE DOM
+    if (parent.contains && descendant.nodeType === 1) { // Element nodeType
+      return parent == descendant || parent.contains(descendant);
+    }
+  
+    // W3C DOM Level 3
+    if (typeof parent.compareDocumentPosition != 'undefined') {
+      return parent == descendant ||
+          Boolean(parent.compareDocumentPosition(descendant) & 16);
+    }
+  
+    // W3C DOM Level 1
+    while (descendant && parent != descendant) {
+      descendant = descendant.parentNode;
+    }
+    return descendant == parent;
+  };
+  
   // Verify that the container is in document.
-  if (!goog.dom.contains(document, container)) {
+  if (!contains(document, container)) {
     throw 'Error: container is not in current document.';
   }
   if (opt_options) {
@@ -47,15 +65,15 @@ Blockly.inject = function(container, opt_options) {
     Blockly.createDom_(container);
     Blockly.init_();
   };
-  if (Blockly.enableRealtime) {
+  /*if (Blockly.enableRealtime) {
     var realtimeElement = document.getElementById('realtime');
     if (realtimeElement) {
       realtimeElement.style.display = 'block';
     }
     Blockly.Realtime.startRealtime(startUi, container, Blockly.realtimeOptions);
-  } else {
+  } else {*/
     startUi();
-  }
+  //}
 };
 
 /**
@@ -160,10 +178,8 @@ Blockly.createDom_ = function(container) {
   // then manually positions content in RTL as needed.
   container.setAttribute('dir', 'LTR');
   // Closure can be trusted to create HTML widgets with the proper direction.
-  goog.ui.Component.setDefaultRightToLeft(Blockly.RTL);
-
-  // Load CSS.
-  Blockly.Css.inject();
+  // TODO?
+  //goog.ui.Component.setDefaultRightToLeft(Blockly.RTL);
 
   // Build the SVG DOM.
   /*
@@ -281,7 +297,10 @@ Blockly.createDom_ = function(container) {
       var flyoutSvg = flyout.createDom();
       flyout.autoClose = false;
       // Insert the flyout behind the workspace so that blocks appear on top.
-      goog.dom.insertSiblingBefore(flyoutSvg, Blockly.mainWorkspace.svgGroup_);
+      var refNode = Blockly.mainWorkspace.svgGroup_;
+      if (refNode.parentNode) {
+        refNode.parentNode.insertBefore(flyoutSvg, refNode);
+      }
       var workspaceChanged = function() {
         if (Blockly.Block.dragMode_ == 0) {
           var metrics = Blockly.mainWorkspace.getMetrics();
@@ -343,7 +362,8 @@ Blockly.createDom_ = function(container) {
   Blockly.svgResize();
 
   // Create an HTML container for popup overlays (e.g. editor widgets).
-  Blockly.WidgetDiv.DIV = goog.dom.createDom('div', 'blocklyWidgetDiv');
+  Blockly.WidgetDiv.DIV = document.createElement('div');
+  Blockly.WidgetDiv.DIV.setAttribute('class', 'blocklyWidgetDiv');
   Blockly.WidgetDiv.DIV.style.direction = Blockly.RTL ? 'rtl' : 'ltr';
   document.body.appendChild(Blockly.WidgetDiv.DIV);
 };
@@ -375,11 +395,11 @@ Blockly.init_ = function() {
     // with non-Blockly elements.
     document.addEventListener('mouseup', Blockly.onMouseUp_, false);
     // Some iPad versions don't fire resize after portrait to landscape change.
-    if (goog.userAgent.IPAD) {
+    //if (goog.userAgent.IPAD) {
       Blockly.bindEvent_(window, 'orientationchange', document, function() {
         Blockly.fireUiEvent(window, 'resize');
       });
-    }
+    //}
     Blockly.documentEventsBound_ = true;
   }
 
@@ -463,3 +483,5 @@ Blockly.updateToolbox = function(tree) {
     Blockly.mainWorkspace.flyout_.show(Blockly.languageTree.childNodes);
   }
 };
+
+});

@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Python.variables');
-
-goog.require('Blockly.Python');
-
-
 Blockly.Python['variables_get'] = function(block) {
   // Variable getter.
   var code = Blockly.Python.variableDB_.getName(block.getFieldValue('VAR'),

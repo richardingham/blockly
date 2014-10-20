@@ -26,25 +26,22 @@
  */
 'use strict';
 
-goog.provide('Blockly.Variables');
 
-// TODO(scr): Fix circular dependencies
-// goog.require('Blockly.Block');
-goog.require('Blockly.Toolbox');
-goog.require('Blockly.Workspace');
+module.exports = (function (Blockly) {
 
+var Variables = {};
 
 /**
  * Category to separate variable names from procedures and generated functions.
  */
-Blockly.Variables.NAME_TYPE = 'VARIABLE';
+Variables.NAME_TYPE = 'VARIABLE';
 
 /**
  * Find all user-created variables.
  * @param {Blockly.Block=} opt_block Optional root block.
  * @return {!Array.<string>} Array of variable names.
  */
-Blockly.Variables.allVariables = function(opt_block) {
+Variables.allVariables = function(opt_block) {
   var blocks;
   if (opt_block) {
     blocks = opt_block.getDescendants();
@@ -79,7 +76,7 @@ Blockly.Variables.allVariables = function(opt_block) {
  * @param {string} oldName Variable to rename.
  * @param {string} newName New variable name.
  */
-Blockly.Variables.renameVariable = function(oldName, newName) {
+Variables.renameVariable = function(oldName, newName) {
   var blocks = Blockly.mainWorkspace.getAllBlocks();
   // Iterate through every block.
   for (var x = 0; x < blocks.length; x++) {
@@ -97,9 +94,9 @@ Blockly.Variables.renameVariable = function(oldName, newName) {
  * @param {number} margin Standard margin width for calculating gaps.
  * @param {!Blockly.Workspace} workspace The flyout's workspace.
  */
-Blockly.Variables.flyoutCategory = function(blocks, gaps, margin, workspace) {
-  var variableList = Blockly.Variables.allVariables();
-  variableList.sort(goog.string.caseInsensitiveCompare);
+Variables.flyoutCategory = function(blocks, gaps, margin, workspace) {
+  var variableList = Variables.allVariables();
+  variableList.sort(Blockly.string.caseInsensitiveCompare);
   // In addition to the user's variables, we also want to display the default
   // variable name at the top.  We also don't want this duplicated if the
   // user has created a variable of the same name.
@@ -137,11 +134,11 @@ Blockly.Variables.flyoutCategory = function(blocks, gaps, margin, workspace) {
 * If no unique name is located it will try 'i1' to 'z1', then 'i2' to 'z2' etc.
 * @return {string} New variable name.
 */
-Blockly.Variables.generateUniqueName = function() {
-  var variableList = Blockly.Variables.allVariables();
+Variables.generateUniqueName = function() {
+  var variableList = Variables.allVariables();
   var newName = '';
   if (variableList.length) {
-    variableList.sort(goog.string.caseInsensitiveCompare);
+    variableList.sort(Blockly.string.caseInsensitiveCompare);
     var nameSuffix = 0, potName = 'i', i = 0, inUse = false;
     while (!newName) {
       i = 0;
@@ -180,3 +177,7 @@ Blockly.Variables.generateUniqueName = function() {
   }
   return newName;
 };
+
+return Variables;
+
+});

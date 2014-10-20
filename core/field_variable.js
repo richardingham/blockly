@@ -30,6 +30,8 @@ goog.require('Blockly.FieldDropdown');
 goog.require('Blockly.Msg');
 goog.require('Blockly.Variables');
 
+var util = require('util');
+var string = require('string');
 
 /**
  * Class for a variable's dropdown field.
@@ -63,7 +65,7 @@ Blockly.FieldVariable = function(varname, opt_changeHandler) {
     changeHandler = Blockly.FieldVariable.dropdownChange;
   }
 
-  Blockly.FieldVariable.superClass_.constructor.call(this,
+  Blockly.FieldVariable.super_.call(this,
       Blockly.FieldVariable.dropdownCreate, changeHandler);
 
   if (varname) {
@@ -72,7 +74,7 @@ Blockly.FieldVariable = function(varname, opt_changeHandler) {
     this.setValue(Blockly.Variables.generateUniqueName());
   }
 };
-goog.inherits(Blockly.FieldVariable, Blockly.FieldDropdown);
+util.inherits(Blockly.FieldVariable, Blockly.FieldDropdown);
 
 /**
  * Clone this FieldVariable.
@@ -114,7 +116,7 @@ Blockly.FieldVariable.dropdownCreate = function() {
   if (name && variableList.indexOf(name) == -1) {
     variableList.push(name);
   }
-  variableList.sort(goog.string.caseInsensitiveCompare);
+  variableList.sort(string.caseInsensitiveCompare);
   variableList.push(Blockly.Msg.RENAME_VARIABLE);
   variableList.push(Blockly.Msg.NEW_VARIABLE);
   // Variables are not language-specific, use the name as both the user-facing

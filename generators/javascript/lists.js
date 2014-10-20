@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript.lists');
-
-goog.require('Blockly.JavaScript');
-
-
 Blockly.JavaScript['lists_create_empty'] = function(block) {
   // Create an empty list.
   return ['[]', Blockly.JavaScript.ORDER_ATOMIC];

@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript');
-
-goog.require('Blockly.Generator');
-
-
 /**
  * JavaScript code generator.
  * @type !Blockly.Generator

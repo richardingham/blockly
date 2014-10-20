@@ -24,8 +24,7 @@
  */
 'use strict';
 
-goog.provide('Blockly.Names');
-
+module.exports = (function (Blockly) {
 
 /**
  * Class for a database of entity names (variables, functions, etc).
@@ -33,7 +32,7 @@ goog.provide('Blockly.Names');
  *     illegal for use as names in a language (e.g. 'new,if,this,...').
  * @constructor
  */
-Blockly.Names = function(reservedWords) {
+var Names = function(reservedWords) {
   this.reservedDict_ = Object.create(null);
   if (reservedWords) {
     var splitWords = reservedWords.split(',');
@@ -56,7 +55,7 @@ Blockly.Names = function(reservedWords) {
 /**
  * Empty the database and start from scratch.  The reserved words are kept.
  */
-Blockly.Names.prototype.reset = function() {
+Names.prototype.reset = function() {
   this.db_ = Object.create(null);
   this.dbReverse_ = Object.create(null);
 };
@@ -68,7 +67,7 @@ Blockly.Names.prototype.reset = function() {
  *     ('VARIABLE', 'PROCEDURE', 'BUILTIN', etc...).
  * @return {string} An entity name legal for the exported language.
  */
-Blockly.Names.prototype.getName = function(name, type) {
+Names.prototype.getName = function(name, type) {
   var normalized = name.toLowerCase() + '_' + type;
   if (normalized in this.db_) {
     return this.db_[normalized];
@@ -88,7 +87,7 @@ Blockly.Names.prototype.getName = function(name, type) {
  *     ('VARIABLE', 'PROCEDURE', 'BUILTIN', etc...).
  * @return {string} An entity name legal for the exported language.
  */
-Blockly.Names.prototype.getDistinctName = function(name, type) {
+Names.prototype.getDistinctName = function(name, type) {
   var safeName = this.safeName_(name);
   var i = '';
   while (this.dbReverse_[safeName + i] ||
@@ -109,7 +108,7 @@ Blockly.Names.prototype.getDistinctName = function(name, type) {
  * @return {string} Safe entity name.
  * @private
  */
-Blockly.Names.prototype.safeName_ = function(name) {
+Names.prototype.safeName_ = function(name) {
   if (!name) {
     name = 'unnamed';
   } else {
@@ -131,6 +130,10 @@ Blockly.Names.prototype.safeName_ = function(name) {
  * @param {string} name2 Second name.
  * @return {boolean} True if names are the same.
  */
-Blockly.Names.equals = function(name1, name2) {
+Names.equals = function(name1, name2) {
   return name1.toLowerCase() == name2.toLowerCase();
 };
+
+return Names;
+
+});

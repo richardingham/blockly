@@ -24,10 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Python.loops');
-
-goog.require('Blockly.Python');
-
 Blockly.Python.LOOP_PASS = '  pass\n';
 
 Blockly.Python['controls_repeat'] = function(block) {

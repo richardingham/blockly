@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.loops');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart['controls_repeat'] = function(block) {
   // Repeat n times (internal number).
   var repeats = Number(block.getFieldValue('TIMES'));

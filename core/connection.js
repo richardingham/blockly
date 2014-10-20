@@ -24,11 +24,9 @@
  */
 'use strict';
 
-goog.provide('Blockly.Connection');
-goog.provide('Blockly.ConnectionDB');
+var util = require('util');
 
-goog.require('Blockly.Workspace');
-
+module.exports = (function (Blockly) {
 
 /**
  * Class for a connection between blocks.
@@ -36,7 +34,7 @@ goog.require('Blockly.Workspace');
  * @param {number} type The type of the connection.
  * @constructor
  */
-Blockly.Connection = function(source, type) {
+var Connection = function(source, type) {
   this.sourceBlock_ = source;
   this.targetConnection = null;
   this.type = type;
@@ -50,7 +48,7 @@ Blockly.Connection = function(source, type) {
 /**
  * Sever all links to this connection (not including from the source object).
  */
-Blockly.Connection.prototype.dispose = function() {
+Connection.prototype.dispose = function() {
   if (this.targetConnection) {
     throw 'Disconnect connection before disposing of it.';
   }
@@ -70,16 +68,16 @@ Blockly.Connection.prototype.dispose = function() {
  * Does the connection belong to a superior block (higher in the source stack)?
  * @return {boolean} True if connection faces down or right.
  */
-Blockly.Connection.prototype.isSuperior = function() {
+Connection.prototype.isSuperior = function() {
   return this.type == Blockly.INPUT_VALUE ||
       this.type == Blockly.NEXT_STATEMENT;
 };
 
 /**
  * Connect this connection to another connection.
- * @param {!Blockly.Connection} otherConnection Connection to connect to.
+ * @param {!Connection} otherConnection Connection to connect to.
  */
-Blockly.Connection.prototype.connect = function(otherConnection) {
+Connection.prototype.connect = function(otherConnection) {
   if (this.sourceBlock_ == otherConnection.sourceBlock_) {
     throw 'Attempted to connect a block to itself.';
   }
@@ -105,7 +103,7 @@ Blockly.Connection.prototype.connect = function(otherConnection) {
       var newBlock = this.sourceBlock_;
       var connection;
       while (connection =
-          Blockly.Connection.singleConnection_(
+          Connection.singleConnection_(
           /** @type {!Blockly.Block} */ (newBlock), orphanBlock)) {
         // '=' is intentional in line above.
         if (connection.targetBlock()) {
@@ -202,11 +200,11 @@ Blockly.Connection.prototype.connect = function(otherConnection) {
  * the orphaned block?
  * @param {!Blockly.Block} block The superior block.
  * @param {!Blockly.Block} orphanBlock The inferior block.
- * @return {Blockly.Connection} The suitable connection point on 'block',
+ * @return {Connection} The suitable connection point on 'block',
  *     or null.
  * @private
  */
-Blockly.Connection.singleConnection_ = function(block, orphanBlock) {
+Connection.singleConnection_ = function(block, orphanBlock) {
   var connection = false;
   for (var x = 0; x < block.inputList.length; x++) {
     var thisConnection = block.inputList[x].connection;
@@ -224,7 +222,7 @@ Blockly.Connection.singleConnection_ = function(block, orphanBlock) {
 /**
  * Disconnect this connection.
  */
-Blockly.Connection.prototype.disconnect = function() {
+Connection.prototype.disconnect = function() {
   var otherConnection = this.targetConnection;
   if (!otherConnection) {
     throw 'Source connection not connected.';
@@ -258,7 +256,7 @@ Blockly.Connection.prototype.disconnect = function() {
  * Returns the block that this connection connects to.
  * @return {Blockly.Block} The connected block or null if none is connected.
  */
-Blockly.Connection.prototype.targetBlock = function() {
+Connection.prototype.targetBlock = function() {
   if (this.targetConnection) {
     return this.targetConnection.sourceBlock_;
   }
@@ -268,11 +266,11 @@ Blockly.Connection.prototype.targetBlock = function() {
 /**
  * Move the block(s) belonging to the connection to a point where they don't
  * visually interfere with the specified connection.
- * @param {!Blockly.Connection} staticConnection The connection to move away
+ * @param {!Connection} staticConnection The connection to move away
  *     from.
  * @private
  */
-Blockly.Connection.prototype.bumpAwayFrom_ = function(staticConnection) {
+Connection.prototype.bumpAwayFrom_ = function(staticConnection) {
   if (Blockly.Block.dragMode_ != 0) {
     // Don't move blocks around while the user is doing the same.
     return;
@@ -314,7 +312,7 @@ Blockly.Connection.prototype.bumpAwayFrom_ = function(staticConnection) {
  * @param {number} x New absolute x coordinate.
  * @param {number} y New absolute y coordinate.
  */
-Blockly.Connection.prototype.moveTo = function(x, y) {
+Connection.prototype.moveTo = function(x, y) {
   // Remove it from its old location in the database (if already present)
   if (this.inDB_) {
     this.dbList_[this.type].removeConnection_(this);
@@ -330,14 +328,14 @@ Blockly.Connection.prototype.moveTo = function(x, y) {
  * @param {number} dx Change to x coordinate.
  * @param {number} dy Change to y coordinate.
  */
-Blockly.Connection.prototype.moveBy = function(dx, dy) {
+Connection.prototype.moveBy = function(dx, dy) {
   this.moveTo(this.x_ + dx, this.y_ + dy);
 };
 
 /**
  * Add highlighting around this connection.
  */
-Blockly.Connection.prototype.highlight = function() {
+Connection.prototype.highlight = function() {
   var steps;
   if (this.type == Blockly.INPUT_VALUE || this.type == Blockly.OUTPUT_VALUE) {
     var tabWidth = Blockly.RTL ? -Blockly.BlockSvg.TAB_WIDTH :
@@ -354,7 +352,7 @@ Blockly.Connection.prototype.highlight = function() {
   var xy = this.sourceBlock_.getRelativeToSurfaceXY();
   var x = this.x_ - xy.x;
   var y = this.y_ - xy.y;
-  Blockly.Connection.highlightedPath_ = Blockly.createSvgElement('path',
+  Connection.highlightedPath_ = Blockly.createSvgElement('path',
       {'class': 'blocklyHighlightedConnectionPath',
        'd': steps,
        transform: 'translate(' + x + ', ' + y + ')'},
@@ -364,16 +362,17 @@ Blockly.Connection.prototype.highlight = function() {
 /**
  * Remove the highlighting around this connection.
  */
-Blockly.Connection.prototype.unhighlight = function() {
-  goog.dom.removeNode(Blockly.Connection.highlightedPath_);
-  delete Blockly.Connection.highlightedPath_;
+Connection.prototype.unhighlight = function() {
+  var node = Connection.highlightedPath_;
+  if (node && node.parentNode) node.parentNode.removeChild(node);
+  delete Connection.highlightedPath_;
 };
 
 /**
  * Move the blocks on either side of this connection right next to each other.
  * @private
  */
-Blockly.Connection.prototype.tighten_ = function() {
+Connection.prototype.tighten_ = function() {
   var dx = Math.round(this.targetConnection.x_ - this.x_);
   var dy = Math.round(this.targetConnection.y_ - this.y_);
   if (dx != 0 || dy != 0) {
@@ -399,7 +398,7 @@ Blockly.Connection.prototype.tighten_ = function() {
  * @return {!Object} Contains two properties: 'connection' which is either
  *     another connection or null, and 'radius' which is the distance.
  */
-Blockly.Connection.prototype.closest = function(maxLimit, dx, dy) {
+Connection.prototype.closest = function(maxLimit, dx, dy) {
   if (this.targetConnection) {
     // Don't offer to connect to a connection that's already connected.
     return {connection: null, radius: maxLimit};
@@ -501,11 +500,11 @@ Blockly.Connection.prototype.closest = function(maxLimit, dx, dy) {
 /**
  * Is this connection compatible with another connection with respect to the
  * value type system.  E.g. square_root("Hello") is not compatible.
- * @param {!Blockly.Connection} otherConnection Connection to compare against.
+ * @param {!Connection} otherConnection Connection to compare against.
  * @return {boolean} True if the connections share a type.
  * @private
  */
-Blockly.Connection.prototype.checkType_ = function(otherConnection) {
+Connection.prototype.checkType_ = function(otherConnection) {
   if (!this.check_ || !otherConnection.check_) {
     // One or both sides are promiscuous enough that anything will fit.
     return true;
@@ -524,13 +523,13 @@ Blockly.Connection.prototype.checkType_ = function(otherConnection) {
  * Change a connection's compatibility.
  * @param {*} check Compatible value type or list of value types.
  *     Null if all types are compatible.
- * @return {!Blockly.Connection} The connection being modified
+ * @return {!Connection} The connection being modified
  *     (to allow chaining).
  */
-Blockly.Connection.prototype.setCheck = function(check) {
+Connection.prototype.setCheck = function(check) {
   if (check) {
     // Ensure that check is in an array.
-    if (!goog.isArray(check)) {
+    if (!util.isArray(check)) {
       check = [check];
     }
     this.check_ = check;
@@ -554,10 +553,10 @@ Blockly.Connection.prototype.setCheck = function(check) {
  * Find all nearby compatible connections to this connection.
  * Type checking does not apply, since this function is used for bumping.
  * @param {number} maxLimit The maximum radius to another connection.
- * @return {!Array.<Blockly.Connection>} List of connections.
+ * @return {!Array.<Connection>} List of connections.
  * @private
  */
-Blockly.Connection.prototype.neighbours_ = function(maxLimit) {
+Connection.prototype.neighbours_ = function(maxLimit) {
   // Determine the opposite type of connection.
   var oppositeType = Blockly.OPPOSITE_TYPE[this.type];
   var db = this.dbList_[oppositeType];
@@ -617,7 +616,7 @@ Blockly.Connection.prototype.neighbours_ = function(maxLimit) {
  * attached to this connection.  This happens when a block is collapsed.
  * Also hides down-stream comments.
  */
-Blockly.Connection.prototype.hideAll = function() {
+Connection.prototype.hideAll = function() {
   if (this.inDB_) {
     this.dbList_[this.type].removeConnection_(this);
   }
@@ -648,7 +647,7 @@ Blockly.Connection.prototype.hideAll = function() {
  * Also unhides down-stream comments.
  * @return {!Array.<!Blockly.Block>} List of blocks to render.
  */
-Blockly.Connection.prototype.unhideAll = function() {
+Connection.prototype.unhideAll = function() {
   if (!this.inDB_) {
     this.dbList_[this.type].addConnection_(this);
   }
@@ -692,22 +691,22 @@ Blockly.Connection.prototype.unhideAll = function() {
  * connections in an area may be looked up quickly using a binary search.
  * @constructor
  */
-Blockly.ConnectionDB = function() {
+var ConnectionDB = function() {
 };
 
-Blockly.ConnectionDB.prototype = new Array();
+ConnectionDB.prototype = new Array();
 /**
  * Don't inherit the constructor from Array.
  * @type {!Function}
  */
-Blockly.ConnectionDB.constructor = Blockly.ConnectionDB;
+ConnectionDB.constructor = ConnectionDB;
 
 /**
  * Add a connection to the database.  Must not already exist in DB.
- * @param {!Blockly.Connection} connection The connection to be added.
+ * @param {!Connection} connection The connection to be added.
  * @private
  */
-Blockly.ConnectionDB.prototype.addConnection_ = function(connection) {
+ConnectionDB.prototype.addConnection_ = function(connection) {
   if (connection.inDB_) {
     throw 'Connection already in database.';
   }
@@ -731,10 +730,10 @@ Blockly.ConnectionDB.prototype.addConnection_ = function(connection) {
 
 /**
  * Remove a connection from the database.  Must already exist in DB.
- * @param {!Blockly.Connection} connection The connection to be removed.
+ * @param {!Connection} connection The connection to be removed.
  * @private
  */
-Blockly.ConnectionDB.prototype.removeConnection_ = function(connection) {
+ConnectionDB.prototype.removeConnection_ = function(connection) {
   if (!connection.inDB_) {
     throw 'Connection not in database.';
   }
@@ -778,12 +777,17 @@ Blockly.ConnectionDB.prototype.removeConnection_ = function(connection) {
  * Initialize a set of connection DBs for a specified workspace.
  * @param {!Blockly.Workspace} workspace The workspace this DB is for.
  */
-Blockly.ConnectionDB.init = function(workspace) {
+ConnectionDB.init = function(workspace) {
   // Create four databases, one for each connection type.
   var dbList = [];
-  dbList[Blockly.INPUT_VALUE] = new Blockly.ConnectionDB();
-  dbList[Blockly.OUTPUT_VALUE] = new Blockly.ConnectionDB();
-  dbList[Blockly.NEXT_STATEMENT] = new Blockly.ConnectionDB();
-  dbList[Blockly.PREVIOUS_STATEMENT] = new Blockly.ConnectionDB();
+  dbList[Blockly.INPUT_VALUE] = new ConnectionDB();
+  dbList[Blockly.OUTPUT_VALUE] = new ConnectionDB();
+  dbList[Blockly.NEXT_STATEMENT] = new ConnectionDB();
+  dbList[Blockly.PREVIOUS_STATEMENT] = new ConnectionDB();
   workspace.connectionDBList = dbList;
 };
+
+Blockly.Connection = Connection;
+Blockly.ConnectionDB = ConnectionDB;
+
+});

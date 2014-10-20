@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Blocks.loops');
-
-goog.require('Blockly.Blocks');
-
-
 Blockly.Blocks['controls_repeat'] = {
   /**
    * Block for repeat n times (internal number).
@@ -159,9 +154,11 @@ Blockly.Blocks['controls_for'] = {
       var option = {enabled: true};
       var name = this.getFieldValue('VAR');
       option.text = Blockly.Msg.VARIABLES_SET_CREATE_GET.replace('%1', name);
-      var xmlField = goog.dom.createDom('field', null, name);
+      var xmlField = document.createElement('field');
+      xmlField.appendChild(document.createTextNode(name));
       xmlField.setAttribute('name', 'VAR');
-      var xmlBlock = goog.dom.createDom('block', null, xmlField);
+      var xmlBlock = document.createElement('block');
+      xmlBlock.appendChild(xmlField);
       xmlBlock.setAttribute('type', 'variables_get');
       option.callback = Blockly.ContextMenu.callbackFactory(this, xmlBlock);
       options.push(option);

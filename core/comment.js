@@ -24,12 +24,9 @@
  */
 'use strict';
 
-goog.provide('Blockly.Comment');
+var util = require('util');
 
-goog.require('Blockly.Bubble');
-goog.require('Blockly.Icon');
-goog.require('goog.userAgent');
-
+module.exports = (function (Blockly) {
 
 /**
  * Class for a comment.
@@ -37,36 +34,36 @@ goog.require('goog.userAgent');
  * @extends {Blockly.Icon}
  * @constructor
  */
-Blockly.Comment = function(block) {
-  Blockly.Comment.superClass_.constructor.call(this, block);
+var Comment = function(block) {
+  Comment.super_.call(this, block);
   this.createIcon_();
 };
-goog.inherits(Blockly.Comment, Blockly.Icon);
+util.inherits(Comment, Blockly.Icon);
 
 
 /**
  * Comment text (if bubble is not visible).
  * @private
  */
-Blockly.Comment.prototype.text_ = '';
+Comment.prototype.text_ = '';
 
 /**
  * Width of bubble.
  * @private
  */
-Blockly.Comment.prototype.width_ = 160;
+Comment.prototype.width_ = 160;
 
 /**
  * Height of bubble.
  * @private
  */
-Blockly.Comment.prototype.height_ = 80;
+Comment.prototype.height_ = 80;
 
 /**
  * Create the icon on the block.
  * @private
  */
-Blockly.Comment.prototype.createIcon_ = function() {
+Comment.prototype.createIcon_ = function() {
   Blockly.Icon.prototype.createIcon_.call(this);
   /* Here's the markup that will be generated:
   <circle class="blocklyIconShield" r="8" cx="8" cy="8"/>
@@ -89,7 +86,7 @@ Blockly.Comment.prototype.createIcon_ = function() {
  * @return {!Element} The top-level node of the editor.
  * @private
  */
-Blockly.Comment.prototype.createEditor_ = function() {
+Comment.prototype.createEditor_ = function() {
   /* Create the editor.  Here's the markup that will be generated:
     <foreignObject x="8" y="8" width="164" height="164">
       <body xmlns="http://www.w3.org/1999/xhtml" class="blocklyMinimalBody">
@@ -118,7 +115,7 @@ Blockly.Comment.prototype.createEditor_ = function() {
  * Add or remove editability of the comment.
  * @override
  */
-Blockly.Comment.prototype.updateEditable = function() {
+Comment.prototype.updateEditable = function() {
   if (this.isVisible()) {
     // Toggling visibility will force a rerendering.
     this.setVisible(false);
@@ -133,7 +130,7 @@ Blockly.Comment.prototype.updateEditable = function() {
  * Resize the text area accordingly.
  * @private
  */
-Blockly.Comment.prototype.resizeBubble_ = function() {
+Comment.prototype.resizeBubble_ = function() {
   var size = this.bubble_.getBubbleSize();
   var doubleBorderWidth = 2 * Blockly.Bubble.BORDER_WIDTH;
   this.foreignObject_.setAttribute('width', size.width - doubleBorderWidth);
@@ -142,16 +139,22 @@ Blockly.Comment.prototype.resizeBubble_ = function() {
   this.textarea_.style.height = (size.height - doubleBorderWidth - 4) + 'px';
 };
 
+var _foreignObjectSupported = (
+  typeof document !== "undefined" && 
+  typeof  document.implementation !== "undefined" && 
+  document.implementation.hasFeature("www.http://w3.org/TR/SVG11/feature#Extensibility","1.1")
+);
+
 /**
  * Show or hide the comment bubble.
  * @param {boolean} visible True if the bubble should be visible.
  */
-Blockly.Comment.prototype.setVisible = function(visible) {
+Comment.prototype.setVisible = function(visible) {
   if (visible == this.isVisible()) {
     // No change.
     return;
   }
-  if ((!this.block_.isEditable() && !this.textarea_) || goog.userAgent.IE) {
+  if ((!this.block_.isEditable() && !this.textarea_) || !_foreignObjectSupported) {
     // Steal the code from warnings to make an uneditable text bubble.
     // MSIE does not support foreignobject; textareas are impossible.
     // http://msdn.microsoft.com/en-us/library/hh834675%28v=vs.85%29.aspx
@@ -189,7 +192,7 @@ Blockly.Comment.prototype.setVisible = function(visible) {
  * @param {!Event} e Mouse up event.
  * @private
  */
-Blockly.Comment.prototype.textareaFocus_ = function(e) {
+Comment.prototype.textareaFocus_ = function(e) {
   // Ideally this would be hooked to the focus event for the comment.
   // However doing so in Firefox swallows the cursor for unknown reasons.
   // So this is hooked to mouseup instead.  No big deal.
@@ -203,7 +206,7 @@ Blockly.Comment.prototype.textareaFocus_ = function(e) {
  * Get the dimensions of this comment's bubble.
  * @return {!Object} Object with width and height properties.
  */
-Blockly.Comment.prototype.getBubbleSize = function() {
+Comment.prototype.getBubbleSize = function() {
   if (this.isVisible()) {
     return this.bubble_.getBubbleSize();
   } else {
@@ -216,7 +219,7 @@ Blockly.Comment.prototype.getBubbleSize = function() {
  * @param {number} width Width of the bubble.
  * @param {number} height Height of the bubble.
  */
-Blockly.Comment.prototype.setBubbleSize = function(width, height) {
+Comment.prototype.setBubbleSize = function(width, height) {
   if (this.textarea_) {
     this.bubble_.setBubbleSize(width, height);
   } else {
@@ -229,7 +232,7 @@ Blockly.Comment.prototype.setBubbleSize = function(width, height) {
  * Returns this comment's text.
  * @return {string} Comment text.
  */
-Blockly.Comment.prototype.getText = function() {
+Comment.prototype.getText = function() {
   return this.textarea_ ? this.textarea_.value : this.text_;
 };
 
@@ -237,7 +240,7 @@ Blockly.Comment.prototype.getText = function() {
  * Set this comment's text.
  * @param {string} text Comment text.
  */
-Blockly.Comment.prototype.setText = function(text) {
+Comment.prototype.setText = function(text) {
   if (this.textarea_) {
     this.textarea_.value = text;
   } else {
@@ -248,7 +251,12 @@ Blockly.Comment.prototype.setText = function(text) {
 /**
  * Dispose of this comment.
  */
-Blockly.Comment.prototype.dispose = function() {
+Comment.prototype.dispose = function() {
   this.block_.comment = null;
   Blockly.Icon.prototype.dispose.call(this);
 };
+
+return Comment;
+
+});
+

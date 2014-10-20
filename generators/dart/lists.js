@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.lists');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart.addReservedWords('Math');
 
 Blockly.Dart['lists_create_empty'] = function(block) {

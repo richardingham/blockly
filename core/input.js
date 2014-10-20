@@ -24,14 +24,9 @@
  */
 'use strict';
 
-goog.provide('Blockly.Input');
+var util = require('util');
 
-// TODO(scr): Fix circular dependencies
-// goog.require('Blockly.Block');
-goog.require('Blockly.Connection');
-goog.require('Blockly.FieldLabel');
-goog.require('goog.asserts');
-
+module.exports = (function (Blockly) {
 
 /**
  * Class for an input with an optional field.
@@ -42,7 +37,7 @@ goog.require('goog.asserts');
  * @param {Blockly.Connection} connection Optional connection for this input.
  * @constructor
  */
-Blockly.Input = function(type, name, block, connection) {
+var Input = function(type, name, block, connection) {
   this.type = type;
   this.name = name;
   this.sourceBlock_ = block;
@@ -58,15 +53,15 @@ Blockly.Input = function(type, name, block, connection) {
  * @param {string|!Blockly.Field} field Something to add as a field.
  * @param {string} opt_name Language-neutral identifier which may used to find
  *     this field again.  Should be unique to the host block.
- * @return {!Blockly.Input} The input being append to (to allow chaining).
+ * @return {!Input} The input being append to (to allow chaining).
  */
-Blockly.Input.prototype.appendField = function(field, opt_name) {
+Input.prototype.appendField = function(field, opt_name) {
   // Empty string, Null or undefined generates no field, unless field is named.
   if (!field && !opt_name) {
     return this;
   }
   // Generate a FieldLabel when given a plain text field.
-  if (goog.isString(field)) {
+  if (util.isString(field)) {
     field = new Blockly.FieldLabel(/** @type {string} */ (field));
   }
   if (this.sourceBlock_.svg_) {
@@ -98,10 +93,10 @@ Blockly.Input.prototype.appendField = function(field, opt_name) {
  * @param {*} field Something to add as a field.
  * @param {string} opt_name Language-neutral identifier which may used to find
  *     this field again.  Should be unique to the host block.
- * @return {!Blockly.Input} The input being append to (to allow chaining).
+ * @return {!Input} The input being append to (to allow chaining).
  * @deprecated December 2013
  */
-Blockly.Input.prototype.appendTitle = function(field, opt_name) {
+Input.prototype.appendTitle = function(field, opt_name) {
   console.log('Deprecated call to appendTitle, use appendField instead.');
   return this.appendField(field, opt_name);
 };
@@ -109,9 +104,9 @@ Blockly.Input.prototype.appendTitle = function(field, opt_name) {
 /**
  * Remove a field from this input.
  * @param {string} name The name of the field.
- * @throws {goog.asserts.AssertionError} if the field is not present.
+ * @throws {Error} if the field is not present.
  */
-Blockly.Input.prototype.removeField = function(name) {
+Input.prototype.removeField = function(name) {
   for (var i = 0, field; field = this.fieldRow[i]; i++) {
     if (field.name === name) {
       field.dispose();
@@ -124,14 +119,14 @@ Blockly.Input.prototype.removeField = function(name) {
       return;
     }
   }
-  goog.asserts.fail('Field "%s" not found.', name);
+  throw new Error('Field "' + name + '" not found.');
 };
 
 /**
  * Gets whether this input is visible or not.
  * @return {boolean} True if visible.
  */
-Blockly.Input.prototype.isVisible = function() {
+Input.prototype.isVisible = function() {
   return this.visible_;
 };
 
@@ -140,7 +135,7 @@ Blockly.Input.prototype.isVisible = function() {
  * @param {boolean} visible True if visible.
  * @return {!Array.<!Blockly.Block>} List of blocks to render.
  */
-Blockly.Input.prototype.setVisible = function(visible) {
+Input.prototype.setVisible = function(visible) {
   var renderList = [];
   if (this.visible_ == visible) {
     return renderList;
@@ -173,9 +168,9 @@ Blockly.Input.prototype.setVisible = function(visible) {
  * Change a connection's compatibility.
  * @param {string|Array.<string>|null} check Compatible value type or
  *     list of value types.  Null if all types are compatible.
- * @return {!Blockly.Input} The input being modified (to allow chaining).
+ * @return {!Input} The input being modified (to allow chaining).
  */
-Blockly.Input.prototype.setCheck = function(check) {
+Input.prototype.setCheck = function(check) {
   if (!this.connection) {
     throw 'This input does not have a connection.';
   }
@@ -187,9 +182,9 @@ Blockly.Input.prototype.setCheck = function(check) {
  * Change the alignment of the connection's field(s).
  * @param {number} align One of Blockly.ALIGN_LEFT, ALIGN_CENTRE, ALIGN_RIGHT.
  *   In RTL mode directions are reversed, and ALIGN_RIGHT aligns to the left.
- * @return {!Blockly.Input} The input being modified (to allow chaining).
+ * @return {!Input} The input being modified (to allow chaining).
  */
-Blockly.Input.prototype.setAlign = function(align) {
+Input.prototype.setAlign = function(align) {
   this.align = align;
   if (this.sourceBlock_.rendered) {
     this.sourceBlock_.render();
@@ -200,7 +195,7 @@ Blockly.Input.prototype.setAlign = function(align) {
 /**
  * Initialize the fields on this input.
  */
-Blockly.Input.prototype.init = function() {
+Input.prototype.init = function() {
   for (var x = 0; x < this.fieldRow.length; x++) {
     this.fieldRow[x].init(this.sourceBlock_);
   }
@@ -209,7 +204,7 @@ Blockly.Input.prototype.init = function() {
 /**
  * Sever all links to this input.
  */
-Blockly.Input.prototype.dispose = function() {
+Input.prototype.dispose = function() {
   for (var i = 0, field; field = this.fieldRow[i]; i++) {
     field.dispose();
   }
@@ -218,3 +213,7 @@ Blockly.Input.prototype.dispose = function() {
   }
   this.sourceBlock_ = null;
 };
+
+return Input;
+
+});

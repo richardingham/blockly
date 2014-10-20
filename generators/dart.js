@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart');
-
-goog.require('Blockly.Generator');
-
-
 /**
  * Dart code generator.
  * @type !Blockly.Generator

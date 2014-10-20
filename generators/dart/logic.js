@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.logic');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart['controls_if'] = function(block) {
   // If/elseif/else condition.
   var n = 0;

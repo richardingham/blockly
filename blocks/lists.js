@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Blocks.lists');
-
-goog.require('Blockly.Blocks');
-
-
 Blockly.Blocks['lists_create_empty'] = {
   /**
    * Block for creating an empty list.

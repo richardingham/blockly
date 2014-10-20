@@ -25,11 +25,12 @@
  */
 'use strict';
 
-goog.provide('Blockly.Mutator');
+// goog.require('Blockly.Bubble');
+// goog.require('Blockly.Icon');
 
-goog.require('Blockly.Bubble');
-goog.require('Blockly.Icon');
+var util = require('util');
 
+module.exports = (function (Blockly) {
 
 /**
  * Class for a mutator dialog.
@@ -37,33 +38,34 @@ goog.require('Blockly.Icon');
  * @extends {Blockly.Icon}
  * @constructor
  */
-Blockly.Mutator = function(quarkNames) {
-  Blockly.Mutator.superClass_.constructor.call(this, null);
+var Mutator = function(quarkNames) {
+  Mutator.super_.call(this, null);
   this.quarkXml_ = [];
   // Convert the list of names into a list of XML objects for the flyout.
   for (var x = 0; x < quarkNames.length; x++) {
-    var element = goog.dom.createDom('block', {'type': quarkNames[x]});
+    var element = document.createElement('block')
+    element.setAttribute('type', quarkNames[x]);
     this.quarkXml_[x] = element;
   }
 };
-goog.inherits(Blockly.Mutator, Blockly.Icon);
+util.inherits(Mutator, Blockly.Icon);
 
 /**
  * Width of workspace.
  * @private
  */
-Blockly.Mutator.prototype.workspaceWidth_ = 0;
+Mutator.prototype.workspaceWidth_ = 0;
 
 /**
  * Height of workspace.
  * @private
  */
-Blockly.Mutator.prototype.workspaceHeight_ = 0;
+Mutator.prototype.workspaceHeight_ = 0;
 
 /**
  * Create the icon on the block.
  */
-Blockly.Mutator.prototype.createIcon = function() {
+Mutator.prototype.createIcon = function() {
   Blockly.Icon.prototype.createIcon_.call(this);
   /* Here's the markup that will be generated:
   <rect class="blocklyIconShield" width="16" height="16" rx="4" ry="4"/>
@@ -90,7 +92,7 @@ Blockly.Mutator.prototype.createIcon = function() {
  * @private
  * @override
  */
-Blockly.Mutator.prototype.iconClick_ = function(e) {
+Mutator.prototype.iconClick_ = function(e) {
   if (this.block_.isEditable()) {
     Blockly.Icon.prototype.iconClick_.call(this, e);
   }
@@ -101,7 +103,7 @@ Blockly.Mutator.prototype.iconClick_ = function(e) {
  * @return {!Element} The top-level node of the editor.
  * @private
  */
-Blockly.Mutator.prototype.createEditor_ = function() {
+Mutator.prototype.createEditor_ = function() {
   /* Create the editor.  Here's the markup that will be generated:
   <svg>
     <rect class="blocklyMutatorBackground" />
@@ -128,7 +130,7 @@ Blockly.Mutator.prototype.createEditor_ = function() {
 /**
  * Add or remove the UI indicating if this icon may be clicked or not.
  */
-Blockly.Mutator.prototype.updateEditable = function() {
+Mutator.prototype.updateEditable = function() {
   if (this.block_.isEditable()) {
     // Default behaviour for an icon.
     Blockly.Icon.prototype.updateEditable.call(this);
@@ -145,7 +147,7 @@ Blockly.Mutator.prototype.updateEditable = function() {
  * Resize the workspace accordingly.
  * @private
  */
-Blockly.Mutator.prototype.resizeBubble_ = function() {
+Mutator.prototype.resizeBubble_ = function() {
   var doubleBorderWidth = 2 * Blockly.Bubble.BORDER_WIDTH;
   var workspaceSize = this.workspace_.getCanvas().getBBox();
   var flyoutMetrics = this.flyout_.getMetrics_();
@@ -182,7 +184,7 @@ Blockly.Mutator.prototype.resizeBubble_ = function() {
  * Show or hide the mutator bubble.
  * @param {boolean} visible True if the bubble should be visible.
  */
-Blockly.Mutator.prototype.setVisible = function(visible) {
+Mutator.prototype.setVisible = function(visible) {
   if (visible == this.isVisible()) {
     // No change.
     return;
@@ -248,7 +250,7 @@ Blockly.Mutator.prototype.setVisible = function(visible) {
  * Fired whenever a change is made to the mutator's workspace.
  * @private
  */
-Blockly.Mutator.prototype.workspaceChanged_ = function() {
+Mutator.prototype.workspaceChanged_ = function() {
   if (Blockly.Block.dragMode_ == 0) {
     var blocks = this.workspace_.getTopBlocks(false);
     var MARGIN = 20;
@@ -295,7 +297,7 @@ Blockly.Mutator.prototype.workspaceChanged_ = function() {
  *     workspace.
  * @private
  */
-Blockly.Mutator.prototype.getFlyoutMetrics_ = function() {
+Mutator.prototype.getFlyoutMetrics_ = function() {
   var left = 0;
   if (Blockly.RTL) {
     left += this.workspaceWidth_;
@@ -311,7 +313,11 @@ Blockly.Mutator.prototype.getFlyoutMetrics_ = function() {
 /**
  * Dispose of this mutator.
  */
-Blockly.Mutator.prototype.dispose = function() {
+Mutator.prototype.dispose = function() {
   this.block_.mutator = null;
   Blockly.Icon.prototype.dispose.call(this);
 };
+
+return Mutator;
+
+});

@@ -24,11 +24,11 @@
  */
 'use strict';
 
-goog.provide('Blockly.FieldLabel');
+// goog.require('Blockly.Field');
 
-goog.require('Blockly.Field');
-goog.require('Blockly.Tooltip');
+var util = require('util');
 
+module.exports = (function (Blockly) {
 
 /**
  * Class for a non-editable field.
@@ -36,7 +36,7 @@ goog.require('Blockly.Tooltip');
  * @extends {Blockly.Field}
  * @constructor
  */
-Blockly.FieldLabel = function(text) {
+var FieldLabel = function(text) {
   this.sourceBlock_ = null;
   // Build the DOM.
   this.textElement_ = Blockly.createSvgElement('text',
@@ -44,27 +44,27 @@ Blockly.FieldLabel = function(text) {
   this.size_ = {height: 25, width: 0};
   this.setText(text);
 };
-goog.inherits(Blockly.FieldLabel, Blockly.Field);
+util.inherits(FieldLabel, Blockly.Field);
 
 /**
  * Clone this FieldLabel.
- * @return {!Blockly.FieldLabel} The result of calling the constructor again
+ * @return {!FieldLabel} The result of calling the constructor again
  *   with the current values of the arguments used during construction.
  */
-Blockly.FieldLabel.prototype.clone = function() {
-  return new Blockly.FieldLabel(this.getText());
+FieldLabel.prototype.clone = function() {
+  return new FieldLabel(this.getText());
 };
 
 /**
  * Editable fields are saved by the XML renderer, non-editable fields are not.
  */
-Blockly.FieldLabel.prototype.EDITABLE = false;
+FieldLabel.prototype.EDITABLE = false;
 
 /**
  * Install this text on a block.
  * @param {!Blockly.Block} block The block containing this text.
  */
-Blockly.FieldLabel.prototype.init = function(block) {
+FieldLabel.prototype.init = function(block) {
   if (this.sourceBlock_) {
     throw 'Text has already been initialized once.';
   }
@@ -79,8 +79,9 @@ Blockly.FieldLabel.prototype.init = function(block) {
 /**
  * Dispose of all DOM objects belonging to this text.
  */
-Blockly.FieldLabel.prototype.dispose = function() {
-  goog.dom.removeNode(this.textElement_);
+FieldLabel.prototype.dispose = function() {
+  var node = this.textElement_
+  if (node && node.parentNode) node.parentNode.removeChild(node);
   this.textElement_ = null;
 };
 
@@ -89,7 +90,7 @@ Blockly.FieldLabel.prototype.dispose = function() {
  * Used for measuring the size and for positioning.
  * @return {!Element} The group element.
  */
-Blockly.FieldLabel.prototype.getRootElement = function() {
+FieldLabel.prototype.getRootElement = function() {
   return /** @type {!Element} */ (this.textElement_);
 };
 
@@ -98,6 +99,10 @@ Blockly.FieldLabel.prototype.getRootElement = function() {
  * @param {string|!Element} newTip Text for tooltip or a parent element to
  *     link to for its tooltip.
  */
-Blockly.FieldLabel.prototype.setTooltip = function(newTip) {
+FieldLabel.prototype.setTooltip = function(newTip) {
   this.textElement_.tooltip = newTip;
 };
+
+return FieldLabel;
+
+});

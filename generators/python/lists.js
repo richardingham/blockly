@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Python.lists');
-
-goog.require('Blockly.Python');
-
-
 Blockly.Python['lists_create_empty'] = function(block) {
   // Create an empty list.
   return ['[]', Blockly.Python.ORDER_ATOMIC];

@@ -26,31 +26,29 @@
  */
 'use strict';
 
-goog.provide('Blockly.WidgetDiv');
+module.exports = (function (Blockly) {
 
-goog.require('Blockly.Css');
-goog.require('goog.dom');
-
+var WidgetDiv = {};
 
 /**
  * The HTML container.  Set once by inject.js's Blockly.createDom_.
  * @type Element
  */
-Blockly.WidgetDiv.DIV = null;
+WidgetDiv.DIV = null;
 
 /**
  * The object currently using this container.
  * @private
  * @type Object
  */
-Blockly.WidgetDiv.owner_ = null;
+WidgetDiv.owner_ = null;
 
 /**
  * Optional cleanup function set by whichever object uses the widget.
  * @private
  * @type Function
  */
-Blockly.WidgetDiv.dispose_ = null;
+WidgetDiv.dispose_ = null;
 
 /**
  * Initialize and display the widget div.  Close the old one if needed.
@@ -58,23 +56,27 @@ Blockly.WidgetDiv.dispose_ = null;
  * @param {Function} dispose Optional cleanup function to be run when the widget
  *   is closed.
  */
-Blockly.WidgetDiv.show = function(newOwner, dispose) {
-  Blockly.WidgetDiv.hide();
-  Blockly.WidgetDiv.owner_ = newOwner;
-  Blockly.WidgetDiv.dispose_ = dispose;
-  Blockly.WidgetDiv.DIV.style.display = 'block';
+WidgetDiv.show = function(newOwner, dispose) {
+  WidgetDiv.hide();
+  WidgetDiv.owner_ = newOwner;
+  WidgetDiv.dispose_ = dispose;
+  WidgetDiv.DIV.style.display = 'block';
 };
 
 /**
  * Destroy the widget and hide the div.
  */
-Blockly.WidgetDiv.hide = function() {
-  if (Blockly.WidgetDiv.owner_) {
-    Blockly.WidgetDiv.DIV.style.display = 'none';
-    Blockly.WidgetDiv.dispose_ && Blockly.WidgetDiv.dispose_();
-    Blockly.WidgetDiv.owner_ = null;
-    Blockly.WidgetDiv.dispose_ = null;
-    goog.dom.removeChildren(Blockly.WidgetDiv.DIV);
+WidgetDiv.hide = function() {
+  if (WidgetDiv.owner_) {
+    WidgetDiv.DIV.style.display = 'none';
+    WidgetDiv.dispose_ && WidgetDiv.dispose_();
+    WidgetDiv.owner_ = null;
+    WidgetDiv.dispose_ = null;
+
+    var child, node = WidgetDiv.DIV;
+    while ((child = node.firstChild)) {
+      node.removeChild(child);
+    }
   }
 };
 
@@ -82,8 +84,8 @@ Blockly.WidgetDiv.hide = function() {
  * Is the container visible?
  * @return {boolean} True if visible.
  */
-Blockly.WidgetDiv.isVisible = function() {
-  return !!Blockly.WidgetDiv.owner_;
+WidgetDiv.isVisible = function() {
+  return !!WidgetDiv.owner_;
 };
 
 /**
@@ -91,9 +93,9 @@ Blockly.WidgetDiv.isVisible = function() {
  *   object.
  * @param {!Object} oldOwner The object that was using this container.
  */
-Blockly.WidgetDiv.hideIfOwner = function(oldOwner) {
-  if (Blockly.WidgetDiv.owner_ == oldOwner) {
-    Blockly.WidgetDiv.hide();
+WidgetDiv.hideIfOwner = function(oldOwner) {
+  if (WidgetDiv.owner_ == oldOwner) {
+    WidgetDiv.hide();
   }
 };
 
@@ -105,7 +107,7 @@ Blockly.WidgetDiv.hideIfOwner = function(oldOwner) {
  * @param {!goog.math.Size} windowSize Height/width of window.
  * @param {!goog.math.Coordinate} scrollOffset X/y of window scrollbars.
  */
-Blockly.WidgetDiv.position = function(anchorX, anchorY, windowSize,
+WidgetDiv.position = function(anchorX, anchorY, windowSize,
                                       scrollOffset) {
   // Don't let the widget go above the top edge of the window.
   if (anchorY < scrollOffset.y) {
@@ -122,6 +124,10 @@ Blockly.WidgetDiv.position = function(anchorX, anchorY, windowSize,
       anchorX = scrollOffset.x;
     }
   }
-  Blockly.WidgetDiv.DIV.style.left = anchorX + 'px';
-  Blockly.WidgetDiv.DIV.style.top = anchorY + 'px';
+  WidgetDiv.DIV.style.left = anchorX + 'px';
+  WidgetDiv.DIV.style.top = anchorY + 'px';
 };
+
+return WidgetDiv;
+
+});

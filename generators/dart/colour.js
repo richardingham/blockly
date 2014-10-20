@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.colour');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart.addReservedWords('Math');
 
 Blockly.Dart['colour_picker'] = function(block) {

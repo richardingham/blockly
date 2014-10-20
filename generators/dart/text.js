@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Dart.text');
-
-goog.require('Blockly.Dart');
-
-
 Blockly.Dart.addReservedWords('Html,Math');
 
 Blockly.Dart['text'] = function(block) {

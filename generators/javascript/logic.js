@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.JavaScript.logic');
-
-goog.require('Blockly.JavaScript');
-
-
 Blockly.JavaScript['controls_if'] = function(block) {
   // If/elseif/else condition.
   var n = 0;

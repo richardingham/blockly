@@ -24,11 +24,12 @@
  */
 'use strict';
 
-goog.provide('Blockly.Warning');
+// goog.require('Blockly.Bubble');
+// goog.require('Blockly.Icon');
 
-goog.require('Blockly.Bubble');
-goog.require('Blockly.Icon');
+var util = require('util');
 
+module.exports = (function (Blockly) {
 
 /**
  * Class for a warning.
@@ -36,11 +37,11 @@ goog.require('Blockly.Icon');
  * @extends {Blockly.Icon}
  * @constructor
  */
-Blockly.Warning = function(block) {
-  Blockly.Warning.superClass_.constructor.call(this, block);
+var Warning = function(block) {
+  Warning.super_.call(this, block);
   this.createIcon_();
 };
-goog.inherits(Blockly.Warning, Blockly.Icon);
+util.inherits(Warning, Blockly.Icon);
 
 
 /**
@@ -49,7 +50,7 @@ goog.inherits(Blockly.Warning, Blockly.Icon);
  * @return {!SVGTextElement} The top-level node of the text.
  * @private
  */
-Blockly.Warning.textToDom_ = function(text) {
+Warning.textToDom_ = function(text) {
   var paragraph = /** @type {!SVGTextElement} */ (
       Blockly.createSvgElement('text',
           {'class': 'blocklyText blocklyBubbleText',
@@ -69,13 +70,13 @@ Blockly.Warning.textToDom_ = function(text) {
  * Warning text (if bubble is not visible).
  * @private
  */
-Blockly.Warning.prototype.text_ = '';
+Warning.prototype.text_ = '';
 
 /**
  * Create the icon on the block.
  * @private
  */
-Blockly.Warning.prototype.createIcon_ = function() {
+Warning.prototype.createIcon_ = function() {
   Blockly.Icon.prototype.createIcon_.call(this);
   /* Here's the markup that will be generated:
   <path class="blocklyIconShield" d="..."/>
@@ -97,14 +98,14 @@ Blockly.Warning.prototype.createIcon_ = function() {
  * Show or hide the warning bubble.
  * @param {boolean} visible True if the bubble should be visible.
  */
-Blockly.Warning.prototype.setVisible = function(visible) {
+Warning.prototype.setVisible = function(visible) {
   if (visible == this.isVisible()) {
     // No change.
     return;
   }
   if (visible) {
     // Create the bubble.
-    var paragraph = Blockly.Warning.textToDom_(this.text_);
+    var paragraph = Warning.textToDom_(this.text_);
     this.bubble_ = new Blockly.Bubble(
         /** @type {!Blockly.Workspace} */ (this.block_.workspace),
         paragraph, this.block_.svg_.svgPath_,
@@ -135,7 +136,7 @@ Blockly.Warning.prototype.setVisible = function(visible) {
  * @param {!Event} e Mouse up event.
  * @private
  */
-Blockly.Warning.prototype.bodyFocus_ = function(e) {
+Warning.prototype.bodyFocus_ = function(e) {
   this.bubble_.promote_();
 };
 
@@ -143,7 +144,7 @@ Blockly.Warning.prototype.bodyFocus_ = function(e) {
  * Set this warning's text.
  * @param {string} text Warning text.
  */
-Blockly.Warning.prototype.setText = function(text) {
+Warning.prototype.setText = function(text) {
   if (this.text_ == text) {
     return;
   }
@@ -157,7 +158,11 @@ Blockly.Warning.prototype.setText = function(text) {
 /**
  * Dispose of this warning.
  */
-Blockly.Warning.prototype.dispose = function() {
+Warning.prototype.dispose = function() {
   this.block_.warning = null;
   Blockly.Icon.prototype.dispose.call(this);
 };
+
+return Warning;
+
+});

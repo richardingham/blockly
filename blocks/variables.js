@@ -24,11 +24,6 @@
  */
 'use strict';
 
-goog.provide('Blockly.Blocks.variables');
-
-goog.require('Blockly.Blocks');
-
-
 Blockly.Blocks['variables_get'] = {
   /**
    * Block for variable getter.
@@ -76,9 +71,11 @@ Blockly.Blocks['variables_get'] = {
     var option = {enabled: true};
     var name = this.getFieldValue('VAR');
     option.text = this.contextMenuMsg_.replace('%1', name);
-    var xmlField = goog.dom.createDom('field', null, name);
+    var xmlField = document.createElement('field');
+    xmlField.appendChild(document.createTextNode(name));
     xmlField.setAttribute('name', 'VAR');
-    var xmlBlock = goog.dom.createDom('block', null, xmlField);
+    var xmlBlock = document.createElement('block', null, xmlField);
+    xmlBlock.appendChild(xmlField);
     xmlBlock.setAttribute('type', this.contextMenuType_);
     option.callback = Blockly.ContextMenu.callbackFactory(this, xmlBlock);
     options.push(option);

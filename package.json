@@ -1,0 +1,25 @@
+{
+  "name": "blockly",
+  "version": "0.0.0",
+  "description": "Google's Blockly is a web-based, graphical programming editor.  Users can drag\r blocks together to build a programs.  All code is free and open source.",
+  "main": "blockly_compressed.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-browserify": "~3.0.1",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-uglify": "~0.6.0",
+    "grunt-contrib-concat": "~0.5.0"
+  },
+  "dependencies": {
+    "lodash": "~2.4.1",
+    "tinycolor2": "~1.0.0"
+  }
+}

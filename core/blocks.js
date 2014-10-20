@@ -23,17 +23,18 @@
  * @author spertus@google.com (Ellen Spertus)
  */
 'use strict';
-goog.require('goog.asserts');
+var assert = require('assert');
 
+module.exports = (function (Blockly) {
 /**
  * Name space for the Blocks singleton.
  * Blocks gets populated in the blocks files, possibly through calls to
  * Blocks.addTemplate().
  */
-goog.provide('Blockly.Blocks');
+var Blocks= {};
 
 /**
- * Create a block template and add it as a field to Blockly.Blocks with the
+ * Create a block template and add it as a field to Blocks with the
  * name details.blockName.
  * @param {!Object} details Details about the block that should be created.
  *     The following fields are used:
@@ -89,20 +90,20 @@ goog.provide('Blockly.Blocks');
  *     - customContextMenuFunc {Function} TODO desc.
  *     Additional fields will be ignored.
  */
-Blockly.Blocks.addTemplate = function(details) {
+Blocks.addTemplate = function(details) {
   // Validate inputs.  TODO: Add more.
-  goog.asserts.assert(details.blockName);
-  goog.asserts.assert(Blockly.Blocks[details.blockName],
-      'Blockly.Blocks already has a field named ', details.blockName);
-  goog.asserts.assert(details.message);
-  goog.asserts.assert(details.colour && typeof details.colour == 'number' &&
+  assert(details.blockName);
+  assert(Blocks[details.blockName],
+      'Blocks already has a field named ' + details.blockName);
+  assert(details.message);
+  assert(details.colour && typeof details.colour == 'number' &&
       details.colour >= 0 && details.colour < 360,
      'details.colour must be a number from 0 to 360 (exclusive)');
   if (details.output != 'undefined') {
-    goog.asserts.assert(!details.previousStatement,
+    assert(!details.previousStatement,
         'When details.output is defined, ' +
         'details.previousStatement must not be true.');
-    goog.asserts.assert(!details.nextStatement,
+    assert(!details.nextStatement,
         'When details.output is defined, ' +
         'details.nextStatement must not be true.');
   }
@@ -140,8 +141,8 @@ Blockly.Blocks.addTemplate = function(details) {
     interpArgs.push(details.text);
     if (details.args) {
       details.args.forEach(function(arg) {
-        goog.asserts.assert(arg.name);
-        goog.asserts.assert(arg.check != 'undefined');
+        assert(arg.name);
+        assert(arg.check != 'undefined');
         if (arg.type == 'undefined' || arg.type == Blockly.INPUT_VALUE) {
           interpArgs.push([arg.name,
                            arg.check,
@@ -149,7 +150,7 @@ Blockly.Blocks.addTemplate = function(details) {
                                Blockly.ALIGN_RIGHT : arg.align]);
         } else {
           // TODO: Write code for other input types.
-          goog.asserts.fail('addTemplate() can only handle value inputs.');
+          assert.fail(null, null, 'addTemplate() can only handle value inputs.');
         }
       });
     }
@@ -178,6 +179,11 @@ Blockly.Blocks.addTemplate = function(details) {
   }
   // TODO: Add domToMutation and customContextMenu.
 
-  // Add new block to Blockly.Blocks.
-  Blockly.Blocks[details.blockName] = block;
+  // Add new block to Blocks.
+  Blocks[details.blockName] = block;
 };
+
+return Blocks;
+
+});
+
