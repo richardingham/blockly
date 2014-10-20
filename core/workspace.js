@@ -120,6 +120,9 @@ Workspace.prototype.createDom = function() {
  * Unlink from all DOM elements to prevent memory leaks.
  */
 Workspace.prototype.dispose = function() {
+  // Remove all elements
+  this.clear();
+
   if (this.svgGroup_) {
     var node = this.svgGroup_;
     if (node && node.parentNode) node.parentNode.removeChild(node);
@@ -130,6 +133,12 @@ Workspace.prototype.dispose = function() {
   if (this.trashcan) {
     this.trashcan.dispose();
     this.trashcan = null;
+  }
+  
+  // Prevent any further change events trying to update deleted 
+  // svg element or workspace. This is required to prevent errors.
+  if (this.fireChangeEventPid_) {
+    window.clearTimeout(this.fireChangeEventPid_);
   }
 };
 

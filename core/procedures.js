@@ -258,10 +258,10 @@ Procedures.disposeCallers = function(name, workspace) {
  * @param {!Array.<string>} paramNames Array of new parameter names.
  * @param {!Array.<string>} paramIds Array of unique parameter IDs.
  */
-Procedures.mutateCallers = function(name, workspace, paramNames, paramIds) {
+Procedures.mutateCallers = function(name, workspace, paramNames, paramIds, startTracking) {
   var callers = Procedures.getCallers(name, workspace);
   for (var x = 0; x < callers.length; x++) {
-    callers[x].setProcedureParameters(paramNames, paramIds);
+    callers[x].setProcedureParameters(paramNames, paramIds, startTracking);
   }
 };
 

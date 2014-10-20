@@ -788,10 +788,11 @@ Blockly.Procedures = require('./procedures')(Blockly);
 Blockly.Toolbox = require('./toolbox')(Blockly);
 Blockly.Tooltip = require('./tooltip')(Blockly);
 Blockly.Trashcan = require('./trashcan')(Blockly);
-Blockly.Variables = require('./variables')(Blockly);
 Blockly.WidgetDiv = require('./widgetdiv')(Blockly);
 Blockly.Workspace = require('./workspace')(Blockly);
 Blockly.Xml = require('./xml')(Blockly);
+
+require('./variables')(Blockly);
 require('./connection')(Blockly);
 require('./inject')(Blockly);
 require('./scrollbar')(Blockly);
