@@ -1000,7 +1000,7 @@ Block.prototype.getSurroundParent = function() {
  * @param {string} type New parent block.
  * @return {Blockly.Block} The ancestor block.
  */
-Blockly.Block.prototype.getAncestor = function(type) {
+Block.prototype.getAncestor = function(type) {
   var block = this;
   do {
     block = block.getParent();
@@ -1014,7 +1014,7 @@ Blockly.Block.prototype.getAncestor = function(type) {
  * statement, whereas the surrounding block is an if statement, while loop, etc.
  * @return {Blockly.Block} The block that surrounds the current block.
  */
-Blockly.Block.prototype.getSurroundAncestor = function(type) {
+Block.prototype.getSurroundAncestor = function(type) {
   var block = this;
   do {
     var prevBlock = block;
@@ -1908,7 +1908,7 @@ Block.prototype.render = function() {
  * @param {boolean} thisBlockOnly Only consider this block.
  * @return {Blockly.VariableScope} The variable scope.
  */
-Blockly.Block.prototype.getVariableScope = function(thisBlockOnly) {
+Block.prototype.getVariableScope = function(thisBlockOnly) {
   if (thisBlockOnly) {
     return this.variableScope_ || null;
   }
