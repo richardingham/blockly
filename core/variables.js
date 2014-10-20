@@ -26,6 +26,7 @@
  */
 'use strict';
 
+var util = require('util');
 
 module.exports = (function (Blockly) {
 
@@ -553,8 +554,8 @@ var VariableSubScope = function (scope) {
   this.superScope_ = scope.superScope_ ? scope.superScope_ : scope;
   this.variables_ = [];
 };
-inherits(VariableSubScope, VariableScope);
-extend(VariableSubScope.prototype, {
+util.inherits(VariableSubScope, VariableScope);
+util._extend(VariableSubScope.prototype, {
   isGlobal: function () {
     return this.superScope_.global_;
   },
