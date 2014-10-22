@@ -162,12 +162,21 @@ FieldAngle.prototype.showEditor_ = function() {
   }
   svg.style.marginLeft = '-35px';
   this.clickWrapper_ =
-      Blockly.bindEvent_(svg, 'click', this, Blockly.WidgetDiv.hide);
+      Blockly.bindEvent_(svg, 'click', this, this.onClick);
   this.moveWrapper1_ =
       Blockly.bindEvent_(circle, 'mousemove', this, this.onMouseMove);
   this.moveWrapper2_ =
       Blockly.bindEvent_(this.gauge_, 'mousemove', this, this.onMouseMove);
   this.updateGraph_();
+};
+
+/**
+ * Close the widget and emit event.
+ * @param {!Event} e Mouse click event.
+ */
+FieldAngle.prototype.onClick = function(e) {
+  Blockly.WidgetDiv.hide();
+  this.emit("changed", Blockly.FieldTextInput.htmlInput_.value);
 };
 
 /**

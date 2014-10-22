@@ -90,6 +90,7 @@ FieldCheckbox.prototype.setValue = function(strBool) {
       this.sourceBlock_.workspace.fireChangeEvent();
     }
   }
+  thisField.emit("changed", newState);
 };
 
 /**

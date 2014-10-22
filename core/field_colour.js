@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+ // TODO: implement with https://github.com/josedvq/colpick-jQuery-Color-Picker/
 
 /**
  * @fileoverview Colour input field.

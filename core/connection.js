@@ -25,6 +25,7 @@
 'use strict';
 
 var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 
 module.exports = (function (Blockly) {
 
@@ -43,7 +44,10 @@ var Connection = function(source, type) {
   this.inDB_ = false;
   // Shortcut for the databases for this connection's workspace.
   this.dbList_ = this.sourceBlock_.workspace.connectionDBList;
+
+  EventEmitter.call(this);
 };
+util.inherits(Connection, EventEmitter);
 
 /**
  * Sever all links to this connection (not including from the source object).
@@ -62,6 +66,7 @@ Connection.prototype.dispose = function() {
   if (Blockly.localConnection_ == this) {
     Blockly.localConnection_ = null;
   }
+  this.removeAllListeners();
 };
 
 /**
@@ -168,6 +173,9 @@ Connection.prototype.connect = function(otherConnection) {
     childBlock = this.sourceBlock_;
   }
 
+  this.emit("connect", childBlock, parentBlock);
+  otherConnection.emit("connect", childBlock, parentBlock);
+
   // Establish the connections.
   this.targetConnection = otherConnection;
   otherConnection.targetConnection = this;
@@ -238,11 +246,16 @@ Connection.prototype.disconnect = function() {
     // Superior block.
     parentBlock = this.sourceBlock_;
     childBlock = otherConnection.sourceBlock_;
+    otherConnection.emit("disconnect", childBlock, parentBlock);
   } else {
     // Inferior block.
     parentBlock = otherConnection.sourceBlock_;
     childBlock = this.sourceBlock_;
   }
+
+  otherConnection.emit("disconnect", childBlock, parentBlock);
+  this.emit("disconnect", childBlock, parentBlock);
+
   if (parentBlock.rendered) {
     parentBlock.render();
   }

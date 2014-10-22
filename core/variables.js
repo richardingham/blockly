@@ -89,6 +89,8 @@ Variable.prototype.setName = function (name) {
 
   if (varName === "") {
     varName = "_";
+    split[1] = varName;
+    name = split.join('::');
   }
 
   if (name === this.name_) {
@@ -204,7 +206,7 @@ var VariableScope = function (block) {
   } else {
     this.global_ = false;
     this.block_ = block;
-    this.namespace_ = 'local';
+    this.namespace_ = 'local.' + block.id;
   }
 
   this.variables_ = [];
@@ -308,7 +310,7 @@ VariableScope.prototype.getNamesInScope = function () {
  */
 VariableScope.prototype.getScopedVariable = function (name) {
   var split = name.split('::');
-  if (split.length > 1 && split[0].substr(0, 6) === "global") {
+  if (this.global_ || (split.length > 1 && split[0].substr(0, 6) === "global")) {
     return Blockly.GlobalScope.getVariable(split[1], split[2]);
   } else if (!this.block_) {
     return;

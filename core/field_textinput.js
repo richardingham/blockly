@@ -247,6 +247,7 @@ FieldTextInput.prototype.widgetDispose_ = function() {
     FieldTextInput.htmlInput_ = null;
     // Delete the width property.
     Blockly.WidgetDiv.DIV.style.width = 'auto';
+    thisField.emit("changed", text);
   };
 };
 

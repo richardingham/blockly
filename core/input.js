@@ -25,6 +25,7 @@
 'use strict';
 
 var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 
 module.exports = (function (Blockly) {
 
@@ -46,7 +47,10 @@ var Input = function(type, name, block, connection) {
   this.align = Blockly.ALIGN_LEFT;
 
   this.visible_ = true;
+
+  EventEmitter.call(this);
 };
+util.inherits(Input, EventEmitter);
 
 /**
  * Add an item to the end of the input's field row.
@@ -80,6 +84,10 @@ Input.prototype.appendField = function(field, opt_name) {
     this.appendField(field.suffixField);
   }
 
+  field.on("changed", function (value) {
+    this.emit("field-changed", field.name, value);
+  }.bind(this));
+
   if (this.sourceBlock_.rendered) {
     this.sourceBlock_.render();
     // Adding a field will cause the block to change shape.
@@ -109,6 +117,7 @@ Input.prototype.appendTitle = function(field, opt_name) {
 Input.prototype.removeField = function(name) {
   for (var i = 0, field; field = this.fieldRow[i]; i++) {
     if (field.name === name) {
+      field.removeAllListeners();
       field.dispose();
       this.fieldRow.splice(i, 1);
       if (this.sourceBlock_.rendered) {

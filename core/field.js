@@ -26,6 +26,9 @@
  */
 'use strict';
 
+var util = require('util');
+var EventEmitter = require('events').EventEmitter;
+
 module.exports = (function (Blockly) {
 
 /**
@@ -48,7 +51,10 @@ var Field = function(text) {
   this.size_ = {height: 25, width: 0};
   this.setText(text);
   this.visible_ = true;
+
+  EventEmitter.call(this);
 };
+util.inherits(Field, EventEmitter);
 
 /**
  * Clone this Field.  This must be implemented by all classes derived from
@@ -208,6 +214,7 @@ Field.prototype.setText = function(text) {
     this.sourceBlock_.render();
     this.sourceBlock_.bumpNeighbours_();
     this.sourceBlock_.workspace.fireChangeEvent();
+    this.sourceBlock_.workspace.emit("field-changed");
   }
 };
 

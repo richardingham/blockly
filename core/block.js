@@ -26,6 +26,7 @@
 
 var util = require('util');
 var assert = require('assert');
+var EventEmitter = require('events').EventEmitter;
 
 module.exports = (function (Blockly) {
 
@@ -72,9 +73,11 @@ Blockly.genUid = function() {
 var Block = function() {
   // We assert this here because there may be users of the previous form of
   // this constructor, which took arguments.
- assert(arguments.length === 0,
-      'Please use Block.obtain.');
+  assert(arguments.length === 0, 'Please use Block.obtain.');
+
+  EventEmitter.call(this);
 };
+util.inherits(Block, EventEmitter);
 
 /**
  * Obtain a newly created block.
@@ -154,7 +157,24 @@ Block.prototype.fill = function(workspace, prototypeName) {
   if (this.definesScope) {
     this.variableScope_ = new Blockly.VariableScope(this);
   }
-  
+
+  if (this.workspace) {
+    this.workspace.addBlock(this);
+  }
+
+  var xy = this.getRelativeToSurfaceXY();
+  var input, field, fields = {};
+  for (var x = 0, max_x = this.inputList.length; x < max_x; x++) {
+    input = this.inputList[x];
+    for (var y = 0, max_y = input.fieldRow.length; y < max_y; y++) {
+      field = input.fieldRow[y];
+      if (field.name && field.EDITABLE) {
+        fields[field.name] = field.getValue();
+      }
+    }
+  }
+  this.emit("created", { block: this.id, type: prototypeName, fields: fields, x: xy.x, y: xy.y });
+
   // Call the created() function if necessary
   if (util.isFunction(this.created)) {
     this.created();
@@ -287,6 +307,7 @@ Block.terminateDrag_ = function() {
       delete selected.draggedBubbles_;
       selected.setDragging_(false);
       selected.render();
+      selected.emit("changed", { block: selected.id, change: "position", x: xy.x, y: xy.y });
       window.setTimeout(
           selected.bumpNeighbours_.bind(selected), Blockly.BUMP_DELAY);
       // Fire an event to allow scrollbars to resize.
@@ -340,6 +361,11 @@ Block.prototype.dispose = function(healStack, animate,
 
   if (animate && this.svg_) {
     this.svg_.disposeUiEffect();
+  }
+
+  if (this.workspace) {
+    this.workspace.removeBlock(this);
+    this.emit("disposed", { block: this.id });
   }
 
   // This block is now at the top of the workspace.
@@ -396,7 +422,7 @@ Block.prototype.dispose = function(healStack, animate,
   //if (Blockly.Realtime.isEnabled() && !Blockly.Realtime.withinSync) {
   //  Blockly.Realtime.removeBlock(this);
   //}
- 
+
   // Call disposed function if defined
   if (util.isFunction(this.disposed)) {
     this.disposed();
@@ -1066,6 +1092,10 @@ Block.prototype.getChildren = function() {
  * @param {Block} newParent New parent block.
  */
 Block.prototype.setParent = function(newParent) {
+  if (!this.onChangeParent_) {
+    this.onChangeParent_ = function () { this.emit("parent-changed") }.bind(this);
+  }
+
   if (this.parentBlock_) {
     // Remove this block from the old parent's child list.
     var children = this.parentBlock_.childBlocks_;
@@ -1080,6 +1110,8 @@ Block.prototype.setParent = function(newParent) {
     this.workspace.getCanvas().appendChild(this.svg_.getRootElement());
     this.svg_.getRootElement().setAttribute('transform',
         'translate(' + xy.x + ', ' + xy.y + ')');
+
+    this.parentBlock_.removeListener("parent-changed", this.onChangeParent_);
 
     // Disconnect from superior blocks.
     this.parentBlock_ = null;
@@ -1110,11 +1142,16 @@ Block.prototype.setParent = function(newParent) {
       newParent.svg_.getRootElement().appendChild(this.svg_.getRootElement());
     }
     var newXY = this.getRelativeToSurfaceXY();
+
+    newParent.on("parent-changed", this.onChangeParent_);
+
     // Move the connections to match the child's new position.
     this.moveConnections_(newXY.x - oldXY.x, newXY.y - oldXY.y);
   } else {
     this.workspace.addTopBlock(this);
   }
+
+  this.emit("parent-changed");
 };
 
 /**
@@ -1146,6 +1183,7 @@ Block.prototype.isDeletable = function() {
  */
 Block.prototype.setDeletable = function(deletable) {
   this.deletable_ = deletable;
+  this.emit("changed", { block: this.id, change: "deletable", value: deletable });
   this.svg_ && this.svg_.updateMovable();
 };
 
@@ -1163,6 +1201,7 @@ Block.prototype.isMovable = function() {
  */
 Block.prototype.setMovable = function(movable) {
   this.movable_ = movable;
+  this.emit("changed", { block: this.id, change: "movable", value: movable });
 };
 
 /**
@@ -1188,6 +1227,7 @@ Block.prototype.setEditable = function(editable) {
   for (var x = 0; x < icons.length; x++) {
     icons[x].updateEditable();
   }
+  this.emit("changed", { block: this.id, change: "editable", value: editable });
 };
 
 /**
@@ -1197,6 +1237,7 @@ Block.prototype.setEditable = function(editable) {
  */
 Block.prototype.setHelpUrl = function(url) {
   this.helpUrl = url;
+  this.emit("changed", { block: this.id, change: "help-url", url: url });
 };
 
 /**
@@ -1229,6 +1270,7 @@ Block.prototype.setColour = function(colourHue) {
     }
     this.render();
   }
+  this.emit("changed", { block: this.id, change: "colour", colour: colourHue });
 };
 
 /**
@@ -1325,6 +1367,14 @@ Block.prototype.setPreviousStatement = function(newBoolean, opt_check) {
     this.previousConnection =
         new Blockly.Connection(this, Blockly.PREVIOUS_STATEMENT);
     this.previousConnection.setCheck(opt_check);
+    this.previousConnection.on("connect", function (child, parent) {
+      /*console.log("Connect stack " + parent.id + " as previous statement of " + child.id + " - via (prev) " + this.id);*/
+      this.emit("connected", { block: child.id, parent: parent.id, connection: "previous" });
+    }.bind(this));
+    this.previousConnection.on("disconnect", function (child, parent) {
+      /*console.log("Disconnect stack " + parent.id + " as previous statement of " + child.id + " - via (prev) " + this.id);*/
+      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "previous" });
+    }.bind(this));
   }
   if (this.rendered) {
     this.render();
@@ -1352,6 +1402,12 @@ Block.prototype.setNextStatement = function(newBoolean, opt_check) {
     this.nextConnection =
         new Blockly.Connection(this, Blockly.NEXT_STATEMENT);
     this.nextConnection.setCheck(opt_check);
+    /*this.nextConnection.on("connect", function (child, parent) {
+      console.log("Connect stack " + parent.id + " as previous statement of " + child.id + " - via (next) " + this.id);
+    }.bind(this));
+    this.nextConnection.on("disconnect", function (child, parent) {
+      console.log("Disconnect stack " + parent.id + " as previous statement of " + child.id + " - via (next) " + this.id);
+    }.bind(this));*/
   }
   if (this.rendered) {
     this.render();
@@ -1382,6 +1438,14 @@ Block.prototype.setOutput = function(newBoolean, opt_check) {
     this.outputConnection =
         new Blockly.Connection(this, Blockly.OUTPUT_VALUE);
     this.outputConnection.setCheck(opt_check);
+    this.outputConnection.on("connect", function (child, parent) {
+      ////console.log("Connect value " + child.id + " to " + parent.id + " - via " + this.id);
+      //this.workspace.emit("block-connect", { block: child.id, parent: parent.id, connection: "output" });
+    }.bind(this));
+    this.outputConnection.on("disconnect", function (child, parent) {
+      ////console.log("Disconnect value " + child.id + " from " + parent.id + " - via " + this.id);
+      //this.workspace.emit("block-disconnect", { block: child.id, parent: parent.id, connection: "output" });
+    }.bind(this));
   }
   if (this.rendered) {
     this.render();
@@ -1413,6 +1477,7 @@ Block.prototype.setInputsInline = function(newBoolean) {
     this.render();
     this.bumpNeighbours_();
     this.workspace.fireChangeEvent();
+    this.emit("changed", { block: this.id, change: "inputs-inline", value: newBoolean });
   }
 };
 
@@ -1427,6 +1492,7 @@ Block.prototype.setDisabled = function(disabled) {
   this.disabled = disabled;
   this.svg_.updateDisabled();
   this.workspace.fireChangeEvent();
+  this.emit("changed", { block: this.id, change: "disabled", value: disabled });
 };
 
 /**
@@ -1492,6 +1558,8 @@ Block.prototype.setCollapsed = function(collapsed) {
     }
     this.bumpNeighbours_();
   }
+
+  this.emit("changed", { block: this.id, change: "collapsed", value: collapsed });
 };
 
 /**
@@ -1679,7 +1747,31 @@ Block.prototype.appendInput_ = function(type, name) {
   if (type == Blockly.INPUT_VALUE || type == Blockly.NEXT_STATEMENT) {
     connection = new Blockly.Connection(this, type);
   }
+  if (type == Blockly.INPUT_VALUE) {
+   connection.on("connect", function (child, parent) {
+      ////console.log("Connect block " + child.id + " onto input " + name + " of " + parent.id + " - from " + this.id);
+      this.emit("connected", { block: child.id, parent: parent.id, connection: "input", input: name });
+    }.bind(this));
+    connection.on("disconnect", function (child, parent) {
+      ////console.log("Disconnect block " + child.id + " from input " + name + " of " + parent.id + " - from " + this.id);
+      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input", input: name });
+    }.bind(this));
+  }
+  if (type == Blockly.NEXT_STATEMENT) {
+    connection.on("connect", function (child, parent) {
+      ////console.log("Connect block " + child.id + " onto stack " + name + " of " + parent.id + " - from " + this.id);
+      this.emit("connected", { block: child.id, parent: parent.id, connection: "input", input: name });
+    }.bind(this));
+    connection.on("disconnect", function (child, parent) {
+      ////console.log("Disconnect block " + child.id + " from stack " + name + " of " + parent.id + " - from " + this.id);
+      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input", input: name });
+    }.bind(this));
+  }
   var input = new Blockly.Input(type, name, this, connection);
+  input.on("field-changed", function (fieldName, value) {
+    ////console.log("Block " + this.id + " field " + fieldName + " changed to ", value);
+    this.emit("changed", { block: this.id, change: "field-value", field: fieldName, value: value });
+  }.bind(this));
   // Append input to list.
   this.inputList.push(input);
   if (this.rendered) {
@@ -1687,6 +1779,7 @@ Block.prototype.appendInput_ = function(type, name) {
     // Adding an input will cause the block to change shape.
     this.bumpNeighbours_();
   }
+  this.emit("changed", { block: this.id, change: "add-input", type: type, name: name });
   return input;
 };
 
@@ -1717,7 +1810,7 @@ Block.prototype.moveInputBefore = function(name, refName) {
     }
   }
   assert(inputIndex !== -1, 'Named input "' + name + '" not found.');
-  ssert(refIndex !== -1, 'Reference input "' + refName + '" not found.');
+  assert(refIndex !== -1, 'Reference input "' + refName + '" not found.');
   this.moveNumberedInputBefore(inputIndex, refIndex);
 };
 
@@ -1732,7 +1825,7 @@ Block.prototype.moveNumberedInputBefore = function(
   assert(inputIndex != refIndex, 'Can\'t move input to itself.');
   assert(inputIndex < this.inputList.length,
                       'Input index ' + inputIndex + ' out of bounds.');
-  ssert(refIndex <= this.inputList.length,
+  assert(refIndex <= this.inputList.length,
                       'Reference input ' + refIndex + ' out of bounds.');
   // Remove input.
   var input = this.inputList[inputIndex];
@@ -1747,6 +1840,7 @@ Block.prototype.moveNumberedInputBefore = function(
     // Moving an input will cause the block to change shape.
     this.bumpNeighbours_();
   }
+  this.emit("changed", { block: this.id, change: "move-input", input: inputIndex, before: refIndex });
 };
 
 /**
@@ -1763,6 +1857,7 @@ Block.prototype.removeInput = function(name, opt_quiet) {
         // Disconnect any attached block.
         input.connection.targetBlock().setParent(null);
       }
+      input.removeAllListeners();
       input.dispose();
       this.inputList.splice(x, 1);
       if (this.rendered) {
@@ -1770,6 +1865,7 @@ Block.prototype.removeInput = function(name, opt_quiet) {
         // Removing an input will cause the block to change shape.
         this.bumpNeighbours_();
       }
+      this.emit("changed", { block: this.id, change: "remove-input", name: name });
       return;
     }
   }
@@ -1846,10 +1942,12 @@ Block.prototype.setCommentText = function(text) {
       changedState = true;
     }
     this.comment.setText(/** @type {string} */ (text));
+    this.emit("changed", { block: this.id, change: "comment", value: text });
   } else {
     if (this.comment) {
       this.comment.dispose();
       changedState = true;
+      this.emit("changed", { block: this.id, change: "comment", value: "" });
     }
   }
   if (this.rendered) {
