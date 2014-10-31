@@ -762,6 +762,8 @@ Blockly.Msg = {};
 Blockly.Block = require('./block')(Blockly);
 Blockly.BlockSvg = require('./block_svg')(Blockly);
 Blockly.Blocks = require('./blocks')(Blockly);
+Blockly.Flyout = require('./flyout')(Blockly);
+Blockly.Flydown = require('./flydown')(Blockly);
 
 // Fields
 Blockly.Field = require('./field')(Blockly);
@@ -773,13 +775,18 @@ Blockly.FieldLabel = require('./field_label')(Blockly);
 Blockly.FieldTextInput = require('./field_textinput')(Blockly);
 Blockly.FieldAngle = require('./field_angle')(Blockly);
 
+Blockly.FieldFlydown = require('./field_flydown')(Blockly);
+Blockly.FieldGlobalFlydown = require('./field_global_flydown')(Blockly);
+Blockly.FieldMachineFlydown = require('./field_machine_flydown')(Blockly);
+Blockly.FieldParameterFlydown = require('./field_parameter_flydown')(Blockly);
+Blockly.FieldLexicalVariable = require('./field_lexical_variable')(Blockly);
+
 Blockly.Bubble = require('./bubble')(Blockly);
 Blockly.Icon = require('./icon')(Blockly);
 Blockly.Comment = require('./comment')(Blockly);
 Blockly.Warning = require('./warning')(Blockly);
 
 Blockly.ContextMenu = require('./contextmenu')(Blockly);
-Blockly.Flyout = require('./flyout')(Blockly);
 Blockly.Generator = require('./generator')(Blockly);
 Blockly.Input = require('./input')(Blockly);
 Blockly.Mutator = require('./mutator')(Blockly);

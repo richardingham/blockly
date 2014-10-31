@@ -49,6 +49,7 @@ Procedures.NAME_TYPE = 'PROCEDURE';
  */
 Procedures.allProcedures = function() {
   var blocks = Blockly.mainWorkspace.getAllBlocks();
+  var sequencesReturn = [];
   var proceduresReturn = [];
   var proceduresNoReturn = [];
   for (var x = 0; x < blocks.length; x++) {
@@ -56,7 +57,9 @@ Procedures.allProcedures = function() {
     if (func) {
       var tuple = func.call(blocks[x]);
       if (tuple) {
-        if (tuple[2]) {
+        if (tuple[2] == "sequence") {
+          sequencesReturn.push(tuple);
+        } else if (tuple[2]) {
           proceduresReturn.push(tuple);
         } else {
           proceduresNoReturn.push(tuple);
@@ -65,9 +68,9 @@ Procedures.allProcedures = function() {
     }
   }
 
-  proceduresNoReturn.sort(Procedures.procTupleComparator_);
-  proceduresReturn.sort(Procedures.procTupleComparator_);
-  return [proceduresNoReturn, proceduresReturn];
+  proceduresNoReturn.sort(Blockly.Procedures.procTupleComparator_);
+  proceduresReturn.sort(Blockly.Procedures.procTupleComparator_);
+  return [proceduresNoReturn, proceduresReturn, sequencesReturn];
 };
 
 /**
@@ -171,23 +174,14 @@ Procedures.rename = function(text) {
  * @param {!Blockly.Workspace} workspace The flyout's workspace.
  */
 Procedures.flyoutCategory = function(blocks, gaps, margin, workspace) {
-  if (Blockly.Blocks['procedures_defnoreturn']) {
-    var block = Blockly.Block.obtain(workspace, 'procedures_defnoreturn');
-    block.initSvg();
-    blocks.push(block);
-    gaps.push(margin * 2);
-  }
-  if (Blockly.Blocks['procedures_defreturn']) {
-    var block = Blockly.Block.obtain(workspace, 'procedures_defreturn');
-    block.initSvg();
-    blocks.push(block);
-    gaps.push(margin * 2);
-  }
-  if (Blockly.Blocks['procedures_ifreturn']) {
-    var block = Blockly.Block.obtain(workspace, 'procedures_ifreturn');
-    block.initSvg();
-    blocks.push(block);
-    gaps.push(margin * 2);
+  var defaultBlocks = ['procedures_defnoreturn', 'procedures_defreturn', 'procedures_ifreturn', 'procedures_namedsequence'];
+  for (var x = 0; x < defaultBlocks.length; x++) {
+    if (Blockly.Blocks[defaultBlocks[x]]) {
+      var block = Blockly.Block.obtain(workspace, defaultBlocks[x]);
+      block.initSvg();
+      blocks.push(block);
+      gaps.push(margin * 2);
+    }
   }
   if (gaps.length) {
     // Add slightly larger gap between system blocks and user calls.
@@ -209,9 +203,10 @@ Procedures.flyoutCategory = function(blocks, gaps, margin, workspace) {
     }
   }
 
-  var tuple = Procedures.allProcedures();
+  var tuple = Blockly.Procedures.allProcedures();
   populateProcedures(tuple[0], 'procedures_callnoreturn');
   populateProcedures(tuple[1], 'procedures_callreturn');
+  populateProcedures(tuple[2], 'procedures_callnamedsequence');
 };
 
 /**
@@ -283,6 +278,53 @@ Procedures.getDefinition = function(name, workspace) {
     }
   }
   return null;
+};
+
+Procedures.getProcedureNames = function(returnValue) {
+  var topBlocks = Blockly.mainWorkspace.getTopBlocks();
+  var procNameArray = [["","none"]];
+  for(var i=0;i<topBlocks.length;i++){
+    var procName = topBlocks[i].getFieldValue('NAME')
+    if(topBlocks[i].type == "procedures_defnoreturn" && !returnValue) {
+      procNameArray.push([procName,procName]);
+    } else if (topBlocks[i].type == "procedures_defreturn" && returnValue) {
+      procNameArray.push([procName,procName]);
+    }
+  }
+  if(procNameArray.length > 1 ){
+    procNameArray.splice(0,1);
+  }
+  return procNameArray;
+};
+
+Procedures.getNamedSequenceNames = function () {
+  var topBlocks = Blockly.mainWorkspace.getTopBlocks();
+  var procNameArray = [["","none"]];
+  for(var i=0;i<topBlocks.length;i++){
+    var procName = topBlocks[i].getFieldValue('NAME')
+    if (topBlocks[i].type == "procedures_namedsequence") {
+      procNameArray.push([procName,procName]);
+    }
+  }
+  if(procNameArray.length > 1 ){
+    procNameArray.splice(0,1);
+  }
+  return procNameArray;
+};
+
+Procedures.removeProcedureValues = function(name, workspace) {
+  if (workspace  // [lyn, 04/13/14] ensure workspace isn't undefined
+      && workspace === Blockly.mainWorkspace) {
+    var blockArray = workspace.getAllBlocks();
+    for(var i=0;i<blockArray.length;i++){
+      var block = blockArray[i];
+      if(block.type == "procedures_callreturn" || block.type == "procedures_callnoreturn") {
+        if(block.getFieldValue('NAME') == name) {
+          block.removeProcedureValue();
+        }
+      }
+    }
+  }
 };
 
 return Procedures;
