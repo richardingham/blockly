@@ -1750,21 +1750,21 @@ Block.prototype.appendInput_ = function(type, name) {
   if (type == Blockly.INPUT_VALUE) {
    connection.on("connect", function (child, parent) {
       ////console.log("Connect block " + child.id + " onto input " + name + " of " + parent.id + " - from " + this.id);
-      this.emit("connected", { block: child.id, parent: parent.id, connection: "input", input: name });
+      this.emit("connected", { block: child.id, parent: parent.id, connection: "input-value", input: name });
     }.bind(this));
     connection.on("disconnect", function (child, parent) {
       ////console.log("Disconnect block " + child.id + " from input " + name + " of " + parent.id + " - from " + this.id);
-      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input", input: name });
+      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input-value", input: name });
     }.bind(this));
   }
   if (type == Blockly.NEXT_STATEMENT) {
     connection.on("connect", function (child, parent) {
       ////console.log("Connect block " + child.id + " onto stack " + name + " of " + parent.id + " - from " + this.id);
-      this.emit("connected", { block: child.id, parent: parent.id, connection: "input", input: name });
+      this.emit("connected", { block: child.id, parent: parent.id, connection: "input-statement", input: name });
     }.bind(this));
     connection.on("disconnect", function (child, parent) {
       ////console.log("Disconnect block " + child.id + " from stack " + name + " of " + parent.id + " - from " + this.id);
-      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input", input: name });
+      this.emit("disconnected", { block: child.id, parent: parent.id, connection: "input-statement", input: name });
     }.bind(this));
   }
   var input = new Blockly.Input(type, name, this, connection);
