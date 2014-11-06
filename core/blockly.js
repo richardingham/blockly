@@ -26,11 +26,12 @@
 
 var util = require('util');
 var tinycolor = require('tinycolor2');
+var EventEmitter = require('events').EventEmitter;
 
 (function () {
 
 // Top level object for Blockly.
-var Blockly = {};
+var Blockly = new EventEmitter();
 
 /**
  * Path to Blockly's directory.  Can be relative, absolute, or remote.
@@ -489,9 +490,12 @@ Blockly.onContextMenu_ = function(e) {
 Blockly.hideChaff = function(opt_allowToolbox) {
   Blockly.Tooltip.hide();
   Blockly.WidgetDiv.hide();
+  Blockly.FieldFlydown.hide();
   if (!opt_allowToolbox &&
       Blockly.Toolbox.flyout_ && Blockly.Toolbox.flyout_.autoClose) {
-    Blockly.Toolbox.clearSelection();
+	  this.emit("hide-toolbox");
+	  // Don't think this should need to be called...
+	  Blockly.Toolbox.flyout_.hide();
   }
 };
 
@@ -523,7 +527,10 @@ Blockly.removeAllRanges = function() {
  * @private
  */
 Blockly.isTargetInput_ = function(e) {
-  return e.target.type == 'textarea' || e.target.type == 'text';
+  // Changed: Polymer element events bubble up with type as 'octopus-editor'.
+  // The only keyboard events we should need to cancel are those coming from 'body'.
+  // Also need to check for Blockly.svg (editor background) or <rect> (bubbles).
+  return !(e.currentTarget === Blockly.svg || e.target === document.body || e.currentTarget.tagName === "rect");
 };
 
 /**
@@ -809,13 +816,3 @@ window.Blockly = Blockly;
 module.exports = Blockly;
 
 })();
-
-/*
-// Export symbols that would otherwise be renamed by Closure compiler.
-if (!window['Blockly']) {
-  window['Blockly'] = {};
-}
-window['Blockly']['getMainWorkspace'] = Blockly.getMainWorkspace;
-window['Blockly']['addChangeListener'] = Blockly.addChangeListener;
-window['Blockly']['removeChangeListener'] = Blockly.removeChangeListener;
-*/

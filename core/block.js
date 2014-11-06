@@ -53,6 +53,15 @@ Blockly.setUidCounter = function(val) {
 };
 
 /**
+ * Update the Blockly.uidCounter_
+ * @param {number} val The min value to set the counter to.
+ */
+Blockly.updateUidCounter = function(val) {
+  val = parseInt(val, 10) + 1;
+  uidCounter_ = val > uidCounter_ ? val : uidCounter_;
+};
+
+/**
  * Generate a unique id.  This will be locally or globally unique, depending on
  * whether we are in single user or realtime collaborative mode.
  * @return {string}
@@ -86,12 +95,12 @@ util.inherits(Block, EventEmitter);
  *     type-specific functions for this block.
  * @return {!Blockly.Block} The created block
  */
-Block.obtain = function(workspace, prototypeName) {
+Block.obtain = function(workspace, prototypeName, id) {
   //if (Blockly.Realtime.isEnabled()) {
   //  return Blockly.Realtime.obtainBlock(workspace, prototypeName);
   //} else {
     var newBlock = new Block();
-    newBlock.initialize(workspace, prototypeName);
+    newBlock.initialize(workspace, prototypeName, id);
     return newBlock;
   //}
 };
@@ -102,8 +111,13 @@ Block.obtain = function(workspace, prototypeName) {
  * @param {?string} prototypeName Name of the language object containing
  *     type-specific functions for this block.
  */
-Block.prototype.initialize = function(workspace, prototypeName) {
-  this.id = Blockly.genUid();
+Block.prototype.initialize = function(workspace, prototypeName, id) {
+  if (typeof id !== "undefined") {
+    this.id = id;
+    Blockly.updateUidCounter(id);
+  } else {
+    this.id = Blockly.genUid();
+  }
   workspace.addTopBlock(this);
   this.fill(workspace, prototypeName);
   // Bind an onchange function, if it exists.

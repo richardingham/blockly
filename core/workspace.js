@@ -193,8 +193,10 @@ Workspace.prototype.getBubbleCanvas = function() {
  * @param {object} data Event data.
  */
 Workspace.prototype.onBlockCreated_ = function(data) {
-  if (this === Blockly.mainWorkspace)
+  if (this === Blockly.mainWorkspace) {
+    Blockly.emit("block-created", data);
     console.log("Block Created", data);
+  }
 };
 
 /**
@@ -202,8 +204,10 @@ Workspace.prototype.onBlockCreated_ = function(data) {
  * @param {object} data Event data.
  */
 Workspace.prototype.onBlockDisposed_ = function(data) {
-  if (this === Blockly.mainWorkspace)
+  if (this === Blockly.mainWorkspace) {
+    Blockly.emit("block-disposed", data);
     console.log("Block Disposed", data);
+  }
 };
 
 /**
@@ -211,8 +215,10 @@ Workspace.prototype.onBlockDisposed_ = function(data) {
  * @param {object} data Event data.
  */
 Workspace.prototype.onBlockChanged_ = function(data) {
-  if (this === Blockly.mainWorkspace)
+  if (this === Blockly.mainWorkspace) {
+    Blockly.emit("block-changed", data);
     console.log("Block Changed", data);
+  }
 };
 
 /**
@@ -220,8 +226,10 @@ Workspace.prototype.onBlockChanged_ = function(data) {
  * @param {object} data Event data.
  */
 Workspace.prototype.onBlockConnected_ = function(data) {
-  if (this === Blockly.mainWorkspace)
+  if (this === Blockly.mainWorkspace) {
+    Blockly.emit("block-connected", data);
     console.log("Block Connected", data);
+  }
 };
 
 /**
@@ -229,8 +237,10 @@ Workspace.prototype.onBlockConnected_ = function(data) {
  * @param {object} data Event data.
  */
 Workspace.prototype.onBlockDisconnected_ = function(data) {
-  if (this === Blockly.mainWorkspace)
+  if (this === Blockly.mainWorkspace) {
+    Blockly.emit("block-disconnected", data);
     console.log("Block Disconnected", data);
+  }
 };
 
 /**
@@ -254,6 +264,8 @@ Workspace.prototype.removeBlock = function(block) {
   var blocks = this.allBlocks_;
   for (var i = blocks.length - 1; i >= 0; i--) {
     if (blocks[i] === block) {
+      block.removeListener("created", this.onBlockCreated_)
+      block.removeListener("disposed", this.onBlockDisposed_)
       block.removeListener("changed", this.onBlockChanged_)
       block.removeListener("connected", this.onBlockConnected_)
       block.removeListener("disconnected", this.onBlockDisconnected_)

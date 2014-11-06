@@ -32,38 +32,15 @@ module.exports = (function (Blockly) {
  * @param {Object} opt_options Optional dictionary of options.
  */
 Blockly.inject = function(container, opt_options) {
-  var contains = function(parent, descendant) {
-    // We use browser specific methods for this if available since it is faster
-    // that way.
-  
-    // IE DOM
-    if (parent.contains && descendant.nodeType === 1) { // Element nodeType
-      return parent == descendant || parent.contains(descendant);
-    }
-  
-    // W3C DOM Level 3
-    if (typeof parent.compareDocumentPosition != 'undefined') {
-      return parent == descendant ||
-          Boolean(parent.compareDocumentPosition(descendant) & 16);
-    }
-  
-    // W3C DOM Level 1
-    while (descendant && parent != descendant) {
-      descendant = descendant.parentNode;
-    }
-    return descendant == parent;
-  };
-  
-  // Verify that the container is in document.
-  if (!contains(document, container)) {
-    throw 'Error: container is not in current document.';
-  }
   if (opt_options) {
     Blockly.parseOptions_(opt_options);
   }
   var startUi = function() {
     Blockly.createDom_(container);
     Blockly.init_();
+
+    // Allow time for the polymer element to attach
+    setTimeout(Blockly.svgResize, 10);
   };
   /*if (Blockly.enableRealtime) {
     var realtimeElement = document.getElementById('realtime');
@@ -115,9 +92,7 @@ Blockly.parseOptions_ = function(options) {
     var hasDisable = false;
     var tree = null;
   } else {
-    var tree = Blockly.parseToolboxTree_(options['toolbox']);
-    var hasCategories = Boolean(tree &&
-        tree.getElementsByTagName('category').length);
+    var hasCategories = true;
     var hasTrashcan = options['trashcan'];
     if (hasTrashcan === undefined) {
       hasTrashcan = hasCategories;
@@ -135,14 +110,9 @@ Blockly.parseOptions_ = function(options) {
       hasDisable = hasCategories;
     }
   }
-  if (tree && !hasCategories) {
-    // Scrollbars are not compatible with a non-flyout toolbox.
-    var hasScrollbars = false;
-  } else {
-    var hasScrollbars = options['scrollbars'];
-    if (hasScrollbars === undefined) {
-      hasScrollbars = true;
-    }
+  var hasScrollbars = options['scrollbars'];
+  if (hasScrollbars === undefined) {
+    hasScrollbars = true;
   }
   var hasSounds = options['sounds'];
   if (hasSounds === undefined) {
@@ -283,75 +253,7 @@ Blockly.createDom_ = function(container) {
   Blockly.mainWorkspace.maxBlocks = Blockly.maxBlocks;
 
   if (!Blockly.readOnly) {
-    // Determine if there needs to be a category tree, or a simple list of
-    // blocks.  This cannot be changed later, since the UI is very different.
-    if (Blockly.hasCategories) {
-      Blockly.Toolbox.createDom(svg, container);
-    } else {
-      /**
-       * @type {!Blockly.Flyout}
-       * @private
-       */
-      Blockly.mainWorkspace.flyout_ = new Blockly.Flyout();
-      var flyout = Blockly.mainWorkspace.flyout_;
-      var flyoutSvg = flyout.createDom();
-      flyout.autoClose = false;
-      // Insert the flyout behind the workspace so that blocks appear on top.
-      var refNode = Blockly.mainWorkspace.svgGroup_;
-      if (refNode.parentNode) {
-        refNode.parentNode.insertBefore(flyoutSvg, refNode);
-      }
-      var workspaceChanged = function() {
-        if (Blockly.Block.dragMode_ == 0) {
-          var metrics = Blockly.mainWorkspace.getMetrics();
-          if (metrics.contentTop < 0 ||
-              metrics.contentTop + metrics.contentHeight >
-              metrics.viewHeight + metrics.viewTop ||
-              metrics.contentLeft < (Blockly.RTL ? metrics.viewLeft : 0) ||
-              metrics.contentLeft + metrics.contentWidth > (Blockly.RTL ?
-                  metrics.viewWidth :
-                  metrics.viewWidth + metrics.viewLeft)) {
-            // One or more blocks is out of bounds.  Bump them back in.
-            var MARGIN = 25;
-            var blocks = Blockly.mainWorkspace.getTopBlocks(false);
-            for (var b = 0, block; block = blocks[b]; b++) {
-              var blockXY = block.getRelativeToSurfaceXY();
-              var blockHW = block.getHeightWidth();
-              // Bump any block that's above the top back inside.
-              var overflow = metrics.viewTop + MARGIN - blockHW.height -
-                  blockXY.y;
-              if (overflow > 0) {
-                block.moveBy(0, overflow);
-              }
-              // Bump any block that's below the bottom back inside.
-              var overflow = metrics.viewTop + metrics.viewHeight - MARGIN -
-                  blockXY.y;
-              if (overflow < 0) {
-                block.moveBy(0, overflow);
-              }
-              // Bump any block that's off the left back inside.
-              var overflow = MARGIN + metrics.viewLeft - blockXY.x -
-                  (Blockly.RTL ? 0 : blockHW.width);
-              if (overflow > 0) {
-                block.moveBy(overflow, 0);
-              }
-              // Bump any block that's off the right back inside.
-              var overflow = metrics.viewLeft + metrics.viewWidth - MARGIN -
-                  blockXY.x + (Blockly.RTL ? blockHW.width : 0);
-              if (overflow < 0) {
-                block.moveBy(overflow, 0);
-              }
-              // Delete any block that's sitting on top of the flyout.
-              if (block.isDeletable() && (Blockly.RTL ?
-                  blockXY.x - metrics.viewWidth : -blockXY.x) > MARGIN * 2) {
-                block.dispose(false, true);
-              }
-            }
-          }
-        }
-      };
-      Blockly.addChangeListener(workspaceChanged);
-    }
+    Blockly.Toolbox.createDom(svg, container);
   }
 
   svg.appendChild(Blockly.Tooltip.createDom());
@@ -403,24 +305,8 @@ Blockly.init_ = function() {
     Blockly.documentEventsBound_ = true;
   }
 
-  if (Blockly.languageTree) {
-    if (Blockly.hasCategories) {
-      Blockly.Toolbox.init();
-    } else {
-      // Build a fixed flyout with the root blocks.
-      Blockly.mainWorkspace.flyout_.init(Blockly.mainWorkspace);
-      Blockly.mainWorkspace.flyout_.show(Blockly.languageTree.childNodes);
-      // Translate the workspace sideways to avoid the fixed flyout.
-      Blockly.mainWorkspace.scrollX = Blockly.mainWorkspace.flyout_.width_;
-      if (Blockly.RTL) {
-        Blockly.mainWorkspace.scrollX *= -1;
-      }
-      var translation = 'translate(' + Blockly.mainWorkspace.scrollX + ', 0)';
-      Blockly.mainWorkspace.getCanvas().setAttribute('transform', translation);
-      Blockly.mainWorkspace.getBubbleCanvas().setAttribute('transform',
-                                                           translation);
-    }
-  }
+  Blockly.Toolbox.init();
+
   if (Blockly.hasScrollbars) {
     Blockly.mainWorkspace.scrollbar =
         new Blockly.ScrollbarPair(Blockly.mainWorkspace);
@@ -452,36 +338,6 @@ Blockly.init_ = function() {
   }
 };
 
-/**
- * Modify the block tree on the existing toolbox.
- * @param {Node|string} tree DOM tree of blocks, or text representation of same.
- */
-Blockly.updateToolbox = function(tree) {
-  tree = Blockly.parseToolboxTree_(tree);
-  if (!tree) {
-    if (Blockly.languageTree) {
-      throw 'Can\'t nullify an existing toolbox.';
-    }
-    // No change (null to null).
-    return;
-  }
-  if (!Blockly.languageTree) {
-    throw 'Existing toolbox is null.  Can\'t create new toolbox.';
-  }
-  var hasCategories = !!tree.getElementsByTagName('category').length;
-  if (hasCategories) {
-    if (!Blockly.hasCategories) {
-      throw 'Existing toolbox has no categories.  Can\'t change mode.';
-    }
-    Blockly.languageTree = tree;
-    Blockly.Toolbox.populate_();
-  } else {
-    if (Blockly.hasCategories) {
-      throw 'Existing toolbox has categories.  Can\'t change mode.';
-    }
-    Blockly.languageTree = tree;
-    Blockly.mainWorkspace.flyout_.show(Blockly.languageTree.childNodes);
-  }
-};
+
 
 });
