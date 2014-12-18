@@ -92,6 +92,7 @@ Blockly.parseOptions_ = function(options) {
     var hasDisable = false;
     var tree = null;
   } else {
+    var tree = Blockly.parseToolboxTree_(options['toolbox']);
     var hasCategories = true;
     var hasTrashcan = options['trashcan'];
     if (hasTrashcan === undefined) {
